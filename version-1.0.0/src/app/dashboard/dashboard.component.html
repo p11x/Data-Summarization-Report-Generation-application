@@ -1,0 +1,131 @@
+<div class="home-container">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <h1 class="logo">MyApp</h1>
+      <div class="header-actions">
+        <button class="settings-btn" (click)="goToSettings()" title="Settings">
+          <span class="settings-icon">⚙️</span>
+        </button>
+        <div class="profile-dropdown">
+          <button class="profile-btn" (click)="toggleProfileMenu()">
+            <span class="profile-icon">👤</span>
+          </button>
+          <div class="dropdown-menu" [class.show]="isProfileMenuOpen">
+            <a class="dropdown-item" (click)="goToProfile()">
+              <span class="dropdown-icon">👤</span>
+              Profile
+            </a>
+            <a class="dropdown-item logout-item" (click)="logout()">
+              <span class="dropdown-icon">🚪</span>
+              Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Search Bar Section -->
+  <section class="search-section">
+    <div class="search-container">
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery"
+        placeholder="Search files, topics, websites..."
+        (keyup.enter)="onSearch()"
+        class="search-input"
+      />
+      <button class="search-btn" (click)="onSearch()">
+        <span>🔍</span> Search
+      </button>
+    </div>
+  </section>
+
+  <!-- Featured Options Section -->
+  <section class="featured-section">
+    <h2>Quick Actions</h2>
+    <div class="featured-grid">
+      <div 
+        *ngFor="let option of featuredOptions" 
+        class="featured-card"
+        (click)="onFeatureAction(option.action)"
+      >
+        <span class="featured-icon">{{ option.icon }}</span>
+        <h3>{{ option.title }}</h3>
+        <p>{{ option.description }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Uploaded Files Section -->
+  <section class="recent-section">
+    <h2>Recent Uploaded Files</h2>
+    <div class="files-table" *ngIf="recentUploadedFiles.length > 0">
+      <div class="file-header">
+        <span>Name</span>
+        <span>Date</span>
+        <span>Size</span>
+      </div>
+      <div *ngFor="let file of recentUploadedFiles" class="file-row">
+        <span class="file-name">📄 {{ file.name }}</span>
+        <span>{{ file.date }}</span>
+        <span>{{ file.size }}</span>
+      </div>
+    </div>
+    <div class="no-files" *ngIf="recentUploadedFiles.length === 0">
+      <p>No files uploaded yet. Upload a file to see it here.</p>
+    </div>
+  </section>
+
+  <!-- Recent Downloaded Files Section -->
+  <section class="recent-section">
+    <h2>Recent Downloaded Reports</h2>
+    <div class="files-table" *ngIf="recentDownloadedFiles.length > 0">
+      <div class="file-header">
+        <span>Name</span>
+        <span>Date</span>
+        <span>Type</span>
+      </div>
+      <div *ngFor="let file of recentDownloadedFiles" class="file-row">
+        <span class="file-name">📥 {{ file.name }}</span>
+        <span>{{ file.date }}</span>
+        <span>{{ file.size }}</span>
+      </div>
+    </div>
+    <div class="no-files" *ngIf="recentDownloadedFiles.length === 0">
+      <p>No reports downloaded yet. Download a report to see it here.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>MyApp</h4>
+        <p>Your one-stop solution for file management and organization.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Connect</h4>
+        <div class="social-links">
+          <a href="#" title="Twitter">🐦</a>
+          <a href="#" title="LinkedIn">💼</a>
+          <a href="#" title="GitHub">🐙</a>
+          <a href="#" title="Email">✉️</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 MyApp. All rights reserved.</p>
+    </div>
+  </footer>
+</div>
