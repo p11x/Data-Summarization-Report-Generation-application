@@ -10,6 +10,7 @@ import { ProfileComponent } from './profile/profile.component';
 import { SettingsComponent } from './settings/settings.component';
 import { TopicsComponent } from './topics/topics.component';
 import { TopicDetailComponent } from './topic-detail/topic-detail.component';
+import { ApiConnectorComponent } from './api-connector/api-connector.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/auth', pathMatch: 'full' },
@@ -23,6 +24,7 @@ export const routes: Routes = [
   { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
   { path: 'topics', component: TopicsComponent, canActivate: [AuthGuard] },
   { path: 'topic/:id', component: TopicDetailComponent, canActivate: [AuthGuard] },
+  { path: 'api-connector', component: ApiConnectorComponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: '/auth' }
 ];
 

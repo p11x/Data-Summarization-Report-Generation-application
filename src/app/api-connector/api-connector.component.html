@@ -1,0 +1,448 @@
+<div class="api-connector-container">
+  <!-- Header -->
+  <header class="connector-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="back-btn" (click)="goBack()">
+          <span class="back-icon">←</span>
+          Back to Dashboard
+        </button>
+        <div class="header-title">
+          <h1>API Data Connector</h1>
+          <p class="header-subtitle">Connect to REST APIs and public datasets</p>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="stat-item">
+          <span class="stat-value">{{ savedSources.length }}</span>
+          <span class="stat-label">Saved Sources</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ publicDatasets.length }}</span>
+          <span class="stat-label">Public Datasets</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tab Navigation -->
+  <nav class="tab-navigation">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'connect'" 
+      (click)="setActiveTab('connect')">
+      <span class="tab-icon">🔗</span>
+      Connect
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'datasets'" 
+      (click)="setActiveTab('datasets')">
+      <span class="tab-icon">📊</span>
+      Public Datasets
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'saved'" 
+      (click)="setActiveTab('saved')">
+      <span class="tab-icon">💾</span>
+      Saved Sources
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'history'" 
+      (click)="setActiveTab('history')">
+      <span class="tab-icon">📜</span>
+      History
+    </button>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="connector-main">
+    <!-- Connect Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'connect'">
+      <div class="connect-layout">
+        <!-- Connection Form -->
+        <div class="connection-form-panel">
+          <div class="panel-header">
+            <h2>API Configuration</h2>
+            <p>Enter the API endpoint details to fetch data</p>
+          </div>
+          
+          <form class="connection-form" (ngSubmit)="testConnection()">
+            <!-- Basic Info -->
+            <div class="form-section">
+              <h3 class="section-title">Basic Information</h3>
+              
+              <div class="form-group">
+                <label for="name">Connection Name</label>
+                <input 
+                  type="text" 
+                  id="name" 
+                  [(ngModel)]="connectionForm.name" 
+                  name="name"
+                  placeholder="My API Connection"
+                  class="form-input">
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group flex-2">
+                  <label for="url">API URL *</label>
+                  <input 
+                    type="url" 
+                    id="url" 
+                    [(ngModel)]="connectionForm.url" 
+                    name="url"
+                    placeholder="https://api.example.com/data"
+                    class="form-input"
+                    required>
+                </div>
+                <div class="form-group flex-1">
+                  <label for="method">Method</label>
+                  <select 
+                    id="method" 
+                    [(ngModel)]="connectionForm.method" 
+                    name="method"
+                    class="form-select">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label for="category">Category</label>
+                  <select 
+                    id="category" 
+                    [(ngModel)]="connectionForm.category" 
+                    name="category"
+                    class="form-select">
+                    <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.label }}</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="description">Description</label>
+                <textarea 
+                  id="description" 
+                  [(ngModel)]="connectionForm.description" 
+                  name="description"
+                  placeholder="Describe this data source..."
+                  class="form-textarea"
+                  rows="2"></textarea>
+              </div>
+            </div>
+
+            <!-- Authentication -->
+            <div class="form-section">
+              <h3 class="section-title">Authentication</h3>
+              
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label for="authType">Auth Type</label>
+                  <select 
+                    id="authType" 
+                    [(ngModel)]="connectionForm.authType" 
+                    name="authType"
+                    class="form-select">
+                    <option *ngFor="let auth of authTypes" [value]="auth.value">{{ auth.label }}</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="authToken">Token / API Key</label>
+                <input 
+                  type="password" 
+                  id="authToken" 
+                  [(ngModel)]="connectionForm.authToken" 
+                  name="authToken"
+                  placeholder="Enter your authentication token"
+                  class="form-input">
+              </div>
+            </div>
+
+            <!-- Headers -->
+            <div class="form-section">
+              <div class="section-header-row">
+                <h3 class="section-title">Custom Headers</h3>
+                <button type="button" class="add-btn" (click)="addHeader()">+ Add Header</button>
+              </div>
+              
+              <div class="key-value-list">
+                <div class="key-value-item" *ngFor="let header of connectionForm.headers; let i = index">
+                  <input 
+                    type="text" 
+                    [(ngModel)]="header.key" 
+                    [name]="'header-key-' + i"
+                    placeholder="Header name"
+                    class="form-input key-input">
+                  <input 
+                    type="text" 
+                    [(ngModel)]="header.value" 
+                    [name]="'header-value-' + i"
+                    placeholder="Header value"
+                    class="form-input value-input">
+                  <button 
+                    type="button" 
+                    class="remove-btn"
+                    (click)="removeHeader(i)"
+                    *ngIf="connectionForm.headers && connectionForm.headers.length > 1">
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Query Parameters -->
+            <div class="form-section">
+              <div class="section-header-row">
+                <h3 class="section-title">Query Parameters</h3>
+                <button type="button" class="add-btn" (click)="addParam()">+ Add Parameter</button>
+              </div>
+              
+              <div class="key-value-list">
+                <div class="key-value-item" *ngFor="let param of connectionForm.params; let i = index">
+                  <input 
+                    type="text" 
+                    [(ngModel)]="param.key" 
+                    [name]="'param-key-' + i"
+                    placeholder="Parameter name"
+                    class="form-input key-input">
+                  <input 
+                    type="text" 
+                    [(ngModel)]="param.value" 
+                    [name]="'param-value-' + i"
+                    placeholder="Parameter value"
+                    class="form-input value-input">
+                  <button 
+                    type="button" 
+                    class="remove-btn"
+                    (click)="removeParam(i)"
+                    *ngIf="connectionForm.params && connectionForm.params.length > 1">
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="resetForm()">Reset</button>
+              <button type="submit" class="btn-primary" [disabled]="isLoading || !connectionForm.url">
+                <span *ngIf="isLoading" class="spinner"></span>
+                {{ isLoading ? 'Testing...' : 'Test Connection' }}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="preview-panel" [class.active]="showPreview">
+          <div class="panel-header">
+            <h2>Response Preview</h2>
+            <div class="preview-actions" *ngIf="previewResult?.success">
+              <button class="btn-icon" (click)="exportAsCSV()" title="Export as CSV">
+                📥 Export CSV
+              </button>
+              <button class="btn-icon" (click)="useDataForAnalysis()" title="Use for Analysis">
+                📊 Analyze
+              </button>
+              <button class="btn-icon" (click)="openSaveModal()" title="Save Data Source">
+                💾 Save
+              </button>
+            </div>
+          </div>
+          
+          <!-- Connection Result -->
+          <div class="result-summary" *ngIf="previewResult">
+            <div class="result-status" [ngClass]="getStatusClass(previewResult.success)">
+              <span class="status-icon">{{ previewResult.success ? '✓' : '✗' }}</span>
+              <span class="status-text">
+                {{ previewResult.success ? 'Connection Successful' : 'Connection Failed' }}
+              </span>
+            </div>
+            
+            <div class="result-stats" *ngIf="previewResult.success">
+              <div class="result-stat">
+                <span class="stat-label">Status Code</span>
+                <span class="stat-value">{{ previewResult.statusCode }}</span>
+              </div>
+              <div class="result-stat">
+                <span class="stat-label">Response Time</span>
+                <span class="stat-value">{{ formatResponseTime(previewResult.responseTime) }}</span>
+              </div>
+              <div class="result-stat">
+                <span class="stat-label">Records</span>
+                <span class="stat-value">{{ previewResult.recordCount || 0 }}</span>
+              </div>
+            </div>
+            
+            <div class="result-error" *ngIf="!previewResult.success && previewResult.error">
+              <span class="error-icon">⚠️</span>
+              <span>{{ previewResult.error }}</span>
+            </div>
+          </div>
+          
+          <!-- JSON Preview -->
+          <div class="json-preview" *ngIf="previewDataJson">
+            <div class="json-header">
+              <span>Response Data</span>
+              <button class="copy-btn" (click)="navigator.clipboard.writeText(previewDataJson)">
+                📋 Copy
+              </button>
+            </div>
+            <pre class="json-content">{{ previewDataJson | slice:0:5000 }}{{ previewDataJson.length > 5000 ? '\n... (truncated)' : '' }}</pre>
+          </div>
+          
+          <!-- Empty State -->
+          <div class="empty-preview" *ngIf="!showPreview">
+            <div class="empty-icon">🔗</div>
+            <h3>No Data Yet</h3>
+            <p>Configure your API connection and click "Test Connection" to preview the response</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Public Datasets Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'datasets'">
+      <div class="datasets-header">
+        <h2>Public Datasets Catalog</h2>
+        <p>Connect to popular public APIs for weather, finance, COVID-19 data, and more</p>
+        
+        <div class="category-filter">
+          <select [(ngModel)]="datasetCategory" (change)="onCategoryChange()" class="form-select">
+            <option *ngFor="let cat of datasetCategories" [value]="cat.value">{{ cat.label }}</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="datasets-grid">
+        <div class="dataset-card" *ngFor="let dataset of publicDatasets" (click)="selectDataset(dataset)">
+          <div class="dataset-icon" [ngClass]="dataset.category">
+            {{ getDatasetIcon(dataset.category) }}
+          </div>
+          <div class="dataset-info">
+            <h3>{{ dataset.name }}</h3>
+            <p>{{ dataset.description }}</p>
+            <div class="dataset-meta">
+              <span class="meta-badge" [ngClass]="dataset.category">{{ dataset.category }}</span>
+              <span class="meta-auth" *ngIf="dataset.requiresAuth">🔑 Requires Auth</span>
+              <span class="meta-auth" *ngIf="!dataset.requiresAuth">🆓 Free</span>
+            </div>
+          </div>
+          <div class="dataset-action">
+            <span class="action-text">Use Dataset →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Sources Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'saved'">
+      <div class="saved-header">
+        <h2>Saved Data Sources</h2>
+        <p>Manage your saved API connections</p>
+      </div>
+      
+      <div class="saved-list" *ngIf="savedSources.length > 0">
+        <div class="saved-item" *ngFor="let source of savedSources">
+          <div class="saved-icon" [ngClass]="source.category">
+            {{ getDatasetIcon(source.category) }}
+          </div>
+          <div class="saved-info">
+            <h3>{{ source.name }}</h3>
+            <p class="saved-url">{{ source.url }}</p>
+            <div class="saved-meta">
+              <span class="meta-badge" [ngClass]="source.category">{{ source.category }}</span>
+              <span class="meta-date">Created: {{ formatDate(source.createdAt) }}</span>
+              <span class="meta-date" *ngIf="source.lastFetched">Last fetched: {{ formatDate(source.lastFetched) }}</span>
+            </div>
+          </div>
+          <div class="saved-actions">
+            <button class="action-btn fetch" (click)="fetchFromSource(source)" title="Fetch Data">
+              🔄 Fetch
+            </button>
+            <button class="action-btn delete" (click)="deleteSource(source.id)" title="Delete">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="empty-state" *ngIf="savedSources.length === 0">
+        <div class="empty-icon">💾</div>
+        <h3>No Saved Sources</h3>
+        <p>Save API connections to quickly fetch data later</p>
+        <button class="btn-primary" (click)="setActiveTab('connect')">Add Data Source</button>
+      </div>
+    </div>
+
+    <!-- History Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'history'">
+      <div class="history-header">
+        <h2>Connection History</h2>
+        <p>Recent API connection attempts</p>
+      </div>
+      
+      <div class="history-list" *ngIf="connectionHistory.length > 0">
+        <div class="history-item" *ngFor="let item of connectionHistory">
+          <div class="history-status" [ngClass]="getStatusClass(item.success)">
+            {{ item.success ? '✓' : '✗' }}
+          </div>
+          <div class="history-info">
+            <span class="history-status-text">{{ item.success ? 'Success' : 'Failed' }}</span>
+            <span class="history-code" *ngIf="item.statusCode">HTTP {{ item.statusCode }}</span>
+            <span class="history-time">{{ formatResponseTime(item.responseTime) }}</span>
+          </div>
+          <div class="history-error" *ngIf="!item.success && item.error">
+            {{ item.error }}
+          </div>
+        </div>
+      </div>
+      
+      <div class="empty-state" *ngIf="connectionHistory.length === 0">
+        <div class="empty-icon">📜</div>
+        <h3>No History</h3>
+        <p>Connection history will appear here</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Save Modal -->
+  <div class="modal-overlay" *ngIf="showSaveModal" (click)="closeSaveModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Save Data Source</h2>
+        <button class="modal-close" (click)="closeSaveModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="save-name">Name *</label>
+          <input 
+            type="text" 
+            id="save-name" 
+            [(ngModel)]="connectionForm.name"
+            placeholder="My API Connection"
+            class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="save-description">Description</label>
+          <textarea 
+            id="save-description" 
+            [(ngModel)]="connectionForm.description"
+            placeholder="Describe this data source..."
+            class="form-textarea"
+            rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeSaveModal()">Cancel</button>
+        <button class="btn-primary" (click)="saveDataSource()">Save Data Source</button>
+      </div>
+    </div>
+  </div>
+</div>

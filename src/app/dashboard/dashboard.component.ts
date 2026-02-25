@@ -22,7 +22,8 @@ export class DashboardComponent implements OnInit {
   featuredOptions = [
     { id: 1, title: 'Add File', description: 'Upload and manage your files', icon: '📁', action: 'add-file' },
     { id: 2, title: 'Select Topic', description: 'Choose topics of interest', icon: '📌', action: 'select-topic' },
-    { id: 3, title: 'Website', description: 'Explore curated websites', icon: '🌐', action: 'website' }
+    { id: 3, title: 'API Connector', description: 'Connect to REST APIs & datasets', icon: '🔗', action: 'api-connector' },
+    { id: 4, title: 'Website', description: 'Explore curated websites', icon: '🌐', action: 'website' }
   ];
 
   constructor(
@@ -55,6 +56,9 @@ export class DashboardComponent implements OnInit {
         break;
       case 'select-topic':
         this.router.navigate(['/topics']);
+        break;
+      case 'api-connector':
+        this.router.navigate(['/api-connector']);
         break;
       case 'website':
         // Navigate to websites page
