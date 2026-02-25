@@ -61,7 +61,7 @@ export class DashboardComponent implements OnInit {
         this.router.navigate(['/api-connector']);
         break;
       case 'website':
-        // Navigate to websites page
+        this.router.navigate(['/website']);
         break;
     }
   }

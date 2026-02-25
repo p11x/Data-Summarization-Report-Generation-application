@@ -8,10 +8,7 @@ import { AuthComponent } from './auth/auth.component';
 @NgModule({
   imports: [
     BrowserModule,
-    AppRoutingModule,
-    AppComponent,
-    DashboardComponent,
-    AuthComponent
+    AppRoutingModule
   ],
   bootstrap: [AppComponent]
 })
