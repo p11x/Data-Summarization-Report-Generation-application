@@ -1,0 +1,50 @@
+export default `<!DOCTYPE html>
+<html lang="en" data-beasties-container="">
+<head>
+  <meta charset="utf-8">
+  <title>App3 - Data Analytics Platform</title>
+  <base href="/">
+  
+  <!-- Meta tags for SEO -->
+  <meta name="description" content="App3 - A comprehensive data analytics platform for processing, analyzing, and visualizing your data.">
+  <meta name="keywords" content="data analytics, visualization, charts, reports, dashboard">
+  <meta name="author" content="App3 Team">
+  <meta name="robots" content="index, follow">
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="App3 - Data Analytics Platform">
+  <meta property="og:description" content="A comprehensive data analytics platform for processing, analyzing, and visualizing your data.">
+  <meta property="og:image" content="/assets/og-image.png">
+  <meta property="og:url" content="https://app3.example.com">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="App3 - Data Analytics Platform">
+  <meta name="twitter:description" content="A comprehensive data analytics platform for processing, analyzing, and visualizing your data.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0078d4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="App3">
+  
+  <!-- Viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Preconnect to external domains -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="styles-5INURTSO.css"></head>
+<body ngcm="">
+  <app-root></app-root>
+  <noscript>Please enable JavaScript to use this application.</noscript>
+<link rel="modulepreload" href="chunk-5A54H67E.js"><link rel="modulepreload" href="chunk-Y3BU5XKC.js"><link rel="modulepreload" href="chunk-LQYN6MIZ.js"><link rel="modulepreload" href="chunk-WQIMRHHR.js"><link rel="modulepreload" href="chunk-EQDQRRRY.js"><script src="polyfills-B6TNHZQ6.js" type="module"></script><script src="main-UFXALVAU.js" type="module"></script></body>
+</html>
+`;

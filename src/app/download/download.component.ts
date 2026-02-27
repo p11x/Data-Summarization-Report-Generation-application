@@ -33,6 +33,14 @@ export class DownloadComponent implements OnInit {
   columnAnalysis: ColumnAnalysis[] = [];
   keyInsights: KeyInsight[] = [];
   reportConfig: ReportConfig | null = null;
+  
+  // Advanced analytics data
+  anomalyResults: any = null;
+  forecastResults: any = null;
+  whatIfScenarios: any[] = [];
+  semanticResults: any = null;
+  lineageData: any = null;
+  
   hasData: boolean = false;
 
   // Export features
@@ -40,10 +48,17 @@ export class DownloadComponent implements OnInit {
     { id: 'header', name: 'Report Header', description: 'Title, date, source file info, and metadata', selected: true },
     { id: 'overview', name: 'Data Overview', description: 'File statistics, record count, column types', selected: true },
     { id: 'summary', name: 'Automated Summary', description: 'Key insights, trends, and data quality assessment', selected: true },
+    { id: 'charts', name: 'Visualizations', description: 'Charts and graphs from the analysis', selected: true },
     { id: 'metrics', name: 'Key Metrics', description: 'Statistical measures for numeric columns', selected: true },
+    { id: 'columns', name: 'Column Analysis', description: 'Detailed analysis of each column (type, nulls, unique values)', selected: true },
+    { id: 'anomaly', name: 'Anomaly Detection', description: 'Outliers and anomalies identified in the data', selected: false },
+    { id: 'forecasting', name: 'Forecasting', description: 'Time series predictions and trends', selected: false },
+    { id: 'whatif', name: 'What-If Analysis', description: 'Scenario analysis results', selected: false },
+    { id: 'semantic', name: 'Semantic Search', description: 'Natural language search results', selected: false },
+    { id: 'lineage', name: 'Data Lineage', description: 'Data pipeline and transformation tracking', selected: false },
     { id: 'table', name: 'Data Table', description: 'Detailed table view with all records', selected: false },
-    { id: 'conclusion', name: 'Conclusion', description: 'Interpretation and recommendations', selected: true },
-    { id: 'rawData', name: 'Raw Data', description: 'Complete raw data from the uploaded file', selected: false }
+    { id: 'rawData', name: 'Raw Data', description: 'Complete raw data from the uploaded file', selected: false },
+    { id: 'conclusion', name: 'Conclusion', description: 'Interpretation and recommendations', selected: true }
   ];
 
   // Export options
@@ -228,6 +243,101 @@ export class DownloadComponent implements OnInit {
           addText(`   Mean: ${col.mean} | Median: ${col.median}`);
           addText(`   Std Dev: ${col.stdDev}`);
           yPos += 3;
+        });
+      }
+    }
+
+    // Column Analysis
+    if (selectedFeatures.some(f => f.id === 'columns') && this.columnAnalysis.length > 0) {
+      addSectionTitle('COLUMN ANALYSIS');
+      
+      this.columnAnalysis.forEach(col => {
+        addText(`${col.name} (${col.type})`, 10, true);
+        addText(`   Unique Values: ${col.unique || 0} | Missing: ${col.nullCount}`);
+        if (col.type === 'Numeric') {
+          addText(`   Min: ${col.min} | Max: ${col.max} | Mean: ${col.mean}`);
+        } else if (col.type === 'Text') {
+          addText(`   Most Common: ${col.top || 'N/A'}`);
+        }
+        yPos += 3;
+      });
+    }
+
+    // Anomaly Detection
+    if (selectedFeatures.some(f => f.id === 'anomaly') && this.anomalyResults) {
+      addSectionTitle('ANOMALY DETECTION');
+      
+      addText(`Method: ${this.anomalyResults.method || 'Z-Score'}`);
+      addText(`Threshold: ${this.anomalyResults.threshold || 2}`);
+      addText(`Total Anomalies: ${this.anomalyResults.total || 0}`);
+      
+      if (this.anomalyResults.anomalies && this.anomalyResults.anomalies.length > 0) {
+        addText('Anomalies Found:', 10, true);
+        this.anomalyResults.anomalies.slice(0, 10).forEach((anomaly: any, idx: number) => {
+          addText(`   ${idx + 1}. Index ${anomaly.index}: ${anomaly.value} (${anomaly.severity})`);
+        });
+      } else {
+        addText('No significant anomalies detected.');
+      }
+    }
+
+    // Forecasting
+    if (selectedFeatures.some(f => f.id === 'forecasting') && this.forecastResults) {
+      addSectionTitle('FORECASTING');
+      
+      addText(`Method: ${this.forecastResults.method || 'N/A'}`);
+      addText(`Forecast Horizon: ${this.forecastResults.horizon || 0} periods`);
+      
+      if (this.forecastResults.predictions && this.forecastResults.predictions.length > 0) {
+        addText('Predictions:', 10, true);
+        this.forecastResults.predictions.slice(0, 10).forEach((pred: any, idx: number) => {
+          addText(`   Period ${idx + 1}: ${pred.value?.toFixed(2) || 'N/A'}`);
+        });
+      } else {
+        addText('No forecasts available.');
+      }
+    }
+
+    // What-If Analysis
+    if (selectedFeatures.some(f => f.id === 'whatif') && this.whatIfScenarios.length > 0) {
+      addSectionTitle('WHAT-IF ANALYSIS');
+      
+      this.whatIfScenarios.slice(0, 5).forEach((scenario: any, idx: number) => {
+        addText(`Scenario ${idx + 1}: ${scenario.name || 'Unnamed'}`, 10, true);
+        if (scenario.changes) {
+          Object.entries(scenario.changes).forEach(([col, change]: [string, any]) => {
+            addText(`   ${col}: ${change > 0 ? '+' : ''}${change}%`);
+          });
+        }
+        yPos += 3;
+      });
+    }
+
+    // Semantic Search
+    if (selectedFeatures.some(f => f.id === 'semantic') && this.semanticResults) {
+      addSectionTitle('SEMANTIC SEARCH RESULTS');
+      
+      addText(`Query: ${this.semanticResults.query || 'N/A'}`);
+      addText(`Results Found: ${this.semanticResults.count || 0}`);
+      
+      if (this.semanticResults.explanation) {
+        addText(`Analysis: ${this.semanticResults.explanation}`);
+      }
+    }
+
+    // Data Lineage
+    if (selectedFeatures.some(f => f.id === 'lineage') && this.lineageData) {
+      addSectionTitle('DATA LINEAGE');
+      
+      addText(`Pipeline: ${this.lineageData.pipelineName || 'N/A'}`);
+      addText(`Dataset: ${this.lineageData.datasetName || 'N/A'}`);
+      addText(`Records: ${this.lineageData.recordCount || 0}`);
+      addText(`Columns: ${this.lineageData.columns || 0}`);
+      
+      if (this.lineageData.steps && this.lineageData.steps.length > 0) {
+        addText('Pipeline Steps:', 10, true);
+        this.lineageData.steps.forEach((step: string, idx: number) => {
+          addText(`   ${idx + 1}. ${step}`);
         });
       }
     }

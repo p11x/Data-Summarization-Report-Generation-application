@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Topic } from './topics.service';
+import { toCSV } from './utils';
 
 export interface TopicDataRecord {
   id: number;
@@ -121,6 +122,16 @@ export class TopicDataService {
     return this.topicStorage.get(topicId) || [];
   }
 
+  saveTopicData(topicId: number, data: TopicDataRecord[]): void {
+    this.topicStorage.set(topicId, data);
+  }
+
+  addDataToTopic(topicId: number, newData: TopicDataRecord[]): void {
+    const existingData = this.getTopicData(topicId);
+    const combinedData = [...existingData, ...newData];
+    this.topicStorage.set(topicId, combinedData);
+  }
+
   getTopicSummary(topicId: number) {
     const data = this.getTopicData(topicId);
     
@@ -167,18 +178,8 @@ export class TopicDataService {
     if (data.length === 0) return '';
 
     const headers = ['ID', 'Date', 'Value', 'Category', 'Status', 'Description', 'Metric1', 'Metric2', 'Metric3'];
-    const rows = data.map(r => [
-      r.id,
-      r.date,
-      r.value,
-      r.category,
-      r.status,
-      `"${r.description}"`,
-      r.metric1,
-      r.metric2,
-      r.metric3.toFixed(2)
-    ]);
-
-    return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    
+    // Use the toCSV utility for proper CSV formatting
+    return toCSV(headers, data);
   }
 }

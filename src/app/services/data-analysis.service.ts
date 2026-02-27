@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { parseCSVLine, parseCSV, calculateNumericStats, detectColumnType } from './utils';
 
+/**
+ * File data structure containing uploaded file information.
+ */
 export interface FileData {
   name: string;
   size: number;
@@ -58,6 +62,16 @@ export interface ReportConfig {
   description: string;
   generatedBy: string;
   reportId: string;
+}
+
+export interface CleaningStats {
+  originalRows: number;
+  originalColumns: number;
+  duplicatesRemoved: number;
+  emptyRowsRemoved: number;
+  columnsRemoved: number;
+  finalRows: number;
+  finalColumns: number;
 }
 
 @Injectable({
@@ -137,47 +151,11 @@ export class DataAnalysisService {
   }
 
   private parseCSV(content: string): { parsedData: any[], headers: string[] } {
-    const lines = content.trim().split('\n');
-    if (lines.length === 0) {
-      return { parsedData: [], headers: [] };
-    }
-
-    const headers = this.parseCSVLine(lines[0]);
-    const parsedData: any[] = [];
-
-    for (let i = 1; i < lines.length; i++) {
-      const values = this.parseCSVLine(lines[i]);
-      if (values.length === headers.length) {
-        const row: any = {};
-        headers.forEach((header, index) => {
-          row[header] = values[index];
-        });
-        parsedData.push(row);
-      }
-    }
-
-    return { parsedData, headers };
+    return parseCSV(content);
   }
 
   private parseCSVLine(line: string): string[] {
-    const result: string[] = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        result.push(current.trim());
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-    result.push(current.trim());
-
-    return result;
+    return parseCSVLine(line);
   }
 
   private analyzeData(data: any[], headers: string[]): void {
@@ -375,10 +353,162 @@ export class DataAnalysisService {
     return this.reportConfigSubject.value;
   }
 
+  // Advanced analytics getters - these are stored in report component
+  // The download component will get them from the report component via shared state
+  getAnomalyResults(): any {
+    return null; // Will be retrieved from report component
+  }
+
+  getForecastResults(): any {
+    return null;
+  }
+
+  getWhatIfScenarios(): any[] {
+    return [];
+  }
+
+  getSemanticResults(): any {
+    return null;
+  }
+
+  getLineageData(): any {
+    return null;
+  }
+
+  // Setter methods for restoring version data
+  setFileData(fileData: FileData): void {
+    this.fileDataSubject.next(fileData);
+  }
+
+  setDataSummary(dataSummary: DataSummary): void {
+    this.dataSummarySubject.next(dataSummary);
+  }
+
+  setColumnAnalysis(columnAnalysis: ColumnAnalysis[]): void {
+    this.columnAnalysisSubject.next(columnAnalysis);
+  }
+
+  setKeyInsights(keyInsights: KeyInsight[]): void {
+    this.keyInsightsSubject.next(keyInsights);
+  }
+
+  setReportConfig(reportConfig: ReportConfig): void {
+    this.reportConfigSubject.next(reportConfig);
+  }
+
   getSampleData(rows: number = 10): any[] {
     const fileData = this.fileDataSubject.value;
     if (!fileData) return [];
     return fileData.parsedData.slice(0, rows);
+  }
+
+  // Filtered Data Storage
+  private filteredDataSubject = new BehaviorSubject<{data: any[], headers: string[], appliedOperations: string[]} | null>(null);
+  filteredData$ = this.filteredDataSubject.asObservable();
+
+  setFilteredData(data: any[], headers: string[], appliedOperations: string[]): void {
+    this.filteredDataSubject.next({ data, headers, appliedOperations });
+  }
+
+  getFilteredData(): {data: any[], headers: string[], appliedOperations: string[]} | null {
+    return this.filteredDataSubject.value;
+  }
+
+  clearFilteredData(): void {
+    this.filteredDataSubject.next(null);
+  }
+
+  // ============================================
+  // Data Cleaning Methods
+  // ============================================
+
+  /**
+   * Remove duplicate rows based on all columns
+   */
+  removeDuplicates(data: any[]): any[] {
+    const seen = new Set<string>();
+    return data.filter(row => {
+      const key = JSON.stringify(row);
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  }
+
+  /**
+   * Remove rows that are completely empty (all values are null/empty)
+   */
+  removeEmptyRows(data: any[]): any[] {
+    return data.filter(row => {
+      const values = Object.values(row);
+      return values.some(v => v !== null && v !== undefined && v !== '');
+    });
+  }
+
+  /**
+   * Remove specified columns from the data
+   */
+  removeColumns(data: any[], columnsToRemove: string[]): any[] {
+    return data.map(row => {
+      const newRow: any = {};
+      Object.keys(row).forEach(key => {
+        if (!columnsToRemove.includes(key)) {
+          newRow[key] = row[key];
+        }
+      });
+      return newRow;
+    });
+  }
+
+  /**
+   * Apply all cleaning operations
+   */
+  cleanData(
+    data: any[], 
+    options: {
+      removeDuplicates: boolean;
+      removeEmptyRows: boolean;
+      removeColumns: string[];
+    }
+  ): { cleanedData: any[]; stats: CleaningStats } {
+    let result = [...data];
+    const stats: CleaningStats = {
+      originalRows: data.length,
+      originalColumns: Object.keys(data[0] || {}).length,
+      duplicatesRemoved: 0,
+      emptyRowsRemoved: 0,
+      columnsRemoved: 0,
+      finalRows: 0,
+      finalColumns: 0
+    };
+
+    // Remove duplicates
+    if (options.removeDuplicates) {
+      const beforeCount = result.length;
+      result = this.removeDuplicates(result);
+      stats.duplicatesRemoved = beforeCount - result.length;
+    }
+
+    // Remove empty rows
+    if (options.removeEmptyRows) {
+      const beforeCount = result.length;
+      result = this.removeEmptyRows(result);
+      stats.emptyRowsRemoved = beforeCount - result.length;
+    }
+
+    // Remove columns
+    if (options.removeColumns.length > 0) {
+      const beforeColumns = Object.keys(result[0] || {}).length;
+      result = this.removeColumns(result, options.removeColumns);
+      stats.columnsRemoved = beforeColumns - Object.keys(result[0] || {}).length;
+    }
+
+    stats.finalRows = result.length;
+    stats.finalColumns = Object.keys(result[0] || {}).length;
+
+    return { cleanedData: result, stats };
   }
 
   getChartData(columnName: string, chartType: 'bar' | 'pie' | 'line' | 'histogram'): any {
@@ -447,6 +577,156 @@ export class DataAnalysisService {
     this.columnAnalysisSubject.next([]);
     this.dataSummarySubject.next(null);
     this.keyInsightsSubject.next([]);
+  }
+
+  // ==================== ETL Data Processing Methods ====================
+
+  /**
+   * Remove rows with null values
+   */
+  removeNulls(data: any[], columns?: string[]): any[] {
+    if (!data || data.length === 0) return [];
+    
+    return data.filter(row => {
+      if (columns && columns.length > 0) {
+        // Check only specified columns
+        return columns.every(col => {
+          const value = row[col];
+          return value !== null && value !== undefined && value !== '';
+        });
+      } else {
+        // Check all columns
+        return Object.values(row).every(val => 
+          val !== null && val !== undefined && val !== ''
+        );
+      }
+    });
+  }
+
+  /**
+   * Normalize numeric columns (scale to 0-1 range)
+   */
+  normalizeColumns(data: any[], columns: string[]): any[] {
+    if (!data || data.length === 0 || columns.length === 0) return data;
+
+    // Find min/max for each column
+    const stats: { [key: string]: { min: number; max: number } } = {};
+    
+    columns.forEach(col => {
+      const values = data
+        .map(row => parseFloat(row[col]))
+        .filter(v => !isNaN(v));
+      
+      if (values.length > 0) {
+        stats[col] = {
+          min: Math.min(...values),
+          max: Math.max(...values)
+        };
+      }
+    });
+
+    // Normalize each row
+    return data.map(row => {
+      const newRow = { ...row };
+      columns.forEach(col => {
+        if (stats[col]) {
+          const value = parseFloat(row[col]);
+          if (!isNaN(value)) {
+            const range = stats[col].max - stats[col].min;
+            newRow[col] = range === 0 ? 0 : (value - stats[col].min) / range;
+          }
+        }
+      });
+      return newRow;
+    });
+  }
+
+  /**
+   * Rename fields in the data
+   */
+  renameFields(data: any[], renameMap: { [key: string]: string }): any[] {
+    if (!data || data.length === 0 || !renameMap) return data;
+
+    return data.map(row => {
+      const newRow: any = {};
+      Object.keys(row).forEach(key => {
+        const newKey = renameMap[key] || key;
+        newRow[newKey] = row[key];
+      });
+      return newRow;
+    });
+  }
+
+  /**
+   * Filter rows based on conditions
+   * Example: { column: 'sales', operator: '!=', value: 0 }
+   */
+  filterRows(data: any[], conditions: { column: string; operator: string; value: any }[]): any[] {
+    if (!data || data.length === 0 || !conditions || conditions.length === 0) return data;
+
+    return data.filter(row => {
+      return conditions.every(condition => {
+        const cellValue = row[condition.column];
+        const filterValue = condition.value;
+
+        switch (condition.operator) {
+          case '=':
+          case '==':
+            return String(cellValue) === String(filterValue);
+          case '!=':
+            return String(cellValue) !== String(filterValue);
+          case '>':
+            return parseFloat(cellValue) > parseFloat(filterValue);
+          case '<':
+            return parseFloat(cellValue) < parseFloat(filterValue);
+          case '>=':
+            return parseFloat(cellValue) >= parseFloat(filterValue);
+          case '<=':
+            return parseFloat(cellValue) <= parseFloat(filterValue);
+          case 'contains':
+            return String(cellValue).toLowerCase().includes(String(filterValue).toLowerCase());
+          case 'startsWith':
+            return String(cellValue).toLowerCase().startsWith(String(filterValue).toLowerCase());
+          case 'endsWith':
+            return String(cellValue).toLowerCase().endsWith(String(filterValue).toLowerCase());
+          case 'isEmpty':
+            return cellValue === null || cellValue === undefined || cellValue === '';
+          case 'isNotEmpty':
+            return cellValue !== null && cellValue !== undefined && cellValue !== '';
+          default:
+            return true;
+        }
+      });
+    });
+  }
+
+  /**
+   * Export data to CSV
+   */
+  exportToCSV(data: any[], filename: string = 'processed_data.csv'): void {
+    if (!data || data.length === 0) return;
+
+    const headers = Object.keys(data[0]);
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => 
+        headers.map(header => {
+          const value = row[header];
+          // Handle values with commas or quotes
+          if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+            return `"${value.replace(/"/g, '""')}"`;
+          }
+          return value ?? '';
+        }).join(',')
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
   }
 
   // Recent files tracking methods

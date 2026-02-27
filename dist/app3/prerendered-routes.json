@@ -1,3 +1,33 @@
 {
-  "routes": {}
+  "routes": {
+    "/": {},
+    "/ai-insights": {},
+    "/anomaly-detection": {},
+    "/api-connector": {},
+    "/auth": {},
+    "/compressor": {},
+    "/converter": {},
+    "/dashboard": {},
+    "/data-filter": {},
+    "/data-processing": {},
+    "/data-sources": {},
+    "/download": {},
+    "/filtered-data": {},
+    "/forecasting": {},
+    "/home": {},
+    "/lineage": {},
+    "/pipeline": {},
+    "/pipelines": {},
+    "/profile": {},
+    "/projects": {},
+    "/recent-reports": {},
+    "/report": {},
+    "/semantic-search": {},
+    "/settings": {},
+    "/topics": {},
+    "/upload": {},
+    "/versions": {},
+    "/website": {},
+    "/what-if": {}
+  }
 }

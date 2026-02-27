@@ -35,16 +35,17 @@ export class AuthComponent {
     this.registrationSuccess = false;
   }
   
-  onLogin() {
+  async onLogin() {
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
-      if (this.authService.login(email, password)) {
+      const success = await this.authService.login(email, password);
+      if (success) {
         this.router.navigate(['/home']);
       }
     }
   }
   
-  onRegister() {
+  async onRegister() {
     if (this.registerForm.valid) {
       const { email, password, confirmPassword } = this.registerForm.value;
       
@@ -53,7 +54,8 @@ export class AuthComponent {
         return;
       }
       
-      if (this.authService.register(email, password)) {
+      const success = await this.authService.register(email, password);
+      if (success) {
         this.registrationSuccess = true;
         this.isLoginMode = true;
         this.loginForm.patchValue({ email, password: '' });
