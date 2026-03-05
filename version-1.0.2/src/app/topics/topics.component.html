@@ -1,0 +1,94 @@
+<div class="topics-container">
+  <!-- Header -->
+  <header class="topics-header">
+    <div class="header-content">
+      <img src="assets/complexity.png" alt="Logo" class="header-logo" (click)="goBack()">
+      <button class="back-btn" (click)="goBack()">
+        <span>←</span> Back
+      </button>
+      <h1>Select Topic</h1>
+      <div class="header-actions">
+        <span class="topic-count">
+          {{ filteredTopics.length }} topics available
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Search and Filter Section -->
+  <section class="filter-section">
+    <div class="filter-container">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery"
+          (keyup)="onSearch()"
+          placeholder="Search topics..."
+          class="search-input"
+        />
+        <button class="clear-search" *ngIf="searchQuery" (click)="searchQuery = ''; onSearch()">
+          ✕
+        </button>
+      </div>
+      
+      <div class="filter-controls">
+        <select [(ngModel)]="selectedCategory" (change)="onCategoryChange()" class="category-select">
+          <option value="all">All Categories</option>
+          <option *ngFor="let category of categories" [value]="category">
+            {{ getCategoryIcon(category) }} {{ category }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading topics...</p>
+  </div>
+
+  <!-- Topics Grid -->
+  <section class="topics-section" *ngIf="!isLoading">
+    <div class="topics-grid" *ngIf="filteredTopics.length > 0">
+      <div 
+        *ngFor="let topic of filteredTopics" 
+        class="topic-card"
+        (click)="onTopicClick(topic)"
+      >
+        <div class="topic-header">
+          <span class="topic-icon">{{ getCategoryIcon(topic.category) }}</span>
+          <span class="topic-category">{{ topic.category }}</span>
+          <span class="view-arrow">→</span>
+        </div>
+        
+        <h3 class="topic-name">{{ topic.name }}</h3>
+        <p class="topic-description">{{ topic.description }}</p>
+        
+        <div class="topic-keywords">
+          <span class="keyword" *ngFor="let keyword of topic.keywords.slice(0, 3)">
+            {{ keyword }}
+          </span>
+          <span class="keyword more" *ngIf="topic.keywords.length > 3">
+            +{{ topic.keywords.length - 3 }} more
+          </span>
+        </div>
+        
+        <div class="topic-action">
+          <span class="action-text">Click to view summarization</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="filteredTopics.length === 0">
+      <span class="empty-icon">📭</span>
+      <h3>No topics found</h3>
+      <p *ngIf="searchQuery">Try adjusting your search query</p>
+      <button class="reset-btn" (click)="searchQuery = ''; selectedCategory = 'all'; applyFilters()">
+        Reset Filters
+      </button>
+    </div>
+  </section>
+</div>

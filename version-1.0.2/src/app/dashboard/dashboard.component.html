@@ -1,0 +1,367 @@
+<div class="home-container" #homeContainer>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+  </div>
+
+  <!-- Navigation Header -->
+  <nav class="navbar" [class.scrolled]="isScrolled">
+    <div class="navbar-brand">
+      <img src="assets/complexity.png" alt="Logo" class="logo-image" (click)="navigateTo('dashboard')">
+      <span class="logo-text">DataVision</span>
+    </div>
+    <div class="navbar-menu" [class.active]="isMobileMenuOpen">
+      <div class="menu-dropdown">
+        <button class="nav-link menu-trigger" (click)="toggleMenuDropdown()">
+          ☰ Menu <span class="dropdown-arrow">▼</span>
+        </button>
+        <div class="menu-dropdown-content" [class.show]="isMenuDropdownOpen">
+          <a class="dropdown-item" (click)="navigateTo('upload')">
+            <span>📤</span> Upload Data
+          </a>
+          <a class="dropdown-item" (click)="navigateTo('report')">
+            <span>📊</span> Generate Report
+          </a>
+          <a class="dropdown-item" (click)="navigateTo('download')">
+            <span>📥</span> Download Reports
+          </a>
+          <a class="dropdown-item" (click)="navigateTo('topics')">
+            <span>📚</span> Browse Topics
+          </a>
+          <a class="dropdown-item" (click)="navigateTo('version-history')">
+            <span>📜</span> Version History
+          </a>
+          <a class="dropdown-item" (click)="navigateTo('projects')">
+            <span>📁</span> My Projects
+          </a>
+          <a class="dropdown-item" (click)="navigateTo('settings')">
+            <span>⚙️</span> Settings
+          </a>
+        </div>
+      </div>
+      <a class="nav-link" (click)="navigateTo('data-sources')">Data Sources</a>
+      <a class="nav-link" (click)="navigateTo('pipelines')">Pipelines</a>
+      <a class="nav-link" (click)="navigateTo('recent-reports')">Reports</a>
+      <a class="nav-link" (click)="navigateTo('ai-insights')">AI Insights</a>
+    </div>
+    <div class="navbar-actions">
+      <button class="settings-btn" (click)="navigateTo('settings')" title="Settings">
+        ⚙️
+      </button>
+      <button class="theme-toggle" (click)="toggleTheme()" [title]="isDarkMode ? 'Light Mode' : 'Dark Mode'">
+        {{ isDarkMode ? '☀️' : '🌙' }}
+      </button>
+      <div class="profile-dropdown">
+        <button class="profile-btn" (click)="toggleProfileMenu()">
+          <span class="profile-icon">👤</span>
+        </button>
+        <div class="dropdown-menu" [class.show]="isProfileMenuOpen">
+          <a class="dropdown-item" (click)="goToProfile()">
+            <span>👤</span> My Profile
+          </a>
+          <a class="dropdown-item" (click)="goToProjects()">
+            <span>📁</span> My Projects
+          </a>
+          <a class="dropdown-item" (click)="toggleTheme()">
+            <span>{{ isDarkMode ? '☀️' : '🌙' }}</span> {{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}
+          </a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item logout-item" (click)="logout()">
+            <span>🚪</span> Logout
+          </a>
+        </div>
+      </div>
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        <span class="gradient-text">Data Summarization</span><br>
+        & Report Generation
+      </h1>
+      <p class="hero-subtitle">
+        Transform your data into actionable insights with AI-powered analytics,
+        interactive visualizations, and intelligent reporting.
+      </p>
+      
+      <!-- Smart Search Bar -->
+      <div class="search-container">
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery"
+            [placeholder]="searchPlaceholder"
+            (keyup.enter)="onSearch()"
+            class="search-input"
+          />
+          <button class="voice-search-btn" title="Voice Search">
+            🎤
+          </button>
+        </div>
+      </div>
+
+      <!-- CTA Buttons -->
+      <div class="hero-actions">
+        <button class="cta-btn primary" (click)="goToUpload()">
+          <span>📤</span> Upload Data
+        </button>
+        <button class="cta-btn secondary" (click)="goToReport()">
+          <span>📈</span> Analyze Now
+        </button>
+      </div>
+    </div>
+
+    <!-- Floating Elements -->
+    <div class="floating-shapes">
+      <div class="shape shape1"></div>
+      <div class="shape shape2"></div>
+      <div class="shape shape3"></div>
+    </div>
+  </section>
+
+  <!-- Interactive Dashboard Preview -->
+  <section class="dashboard-preview-section">
+    <div class="preview-card">
+      <div class="preview-header">
+        <h3>📊 Quick Overview</h3>
+        <span class="live-badge">● Live</span>
+      </div>
+      <div class="preview-stats">
+        <div class="stat-item">
+          <div class="stat-icon">📁</div>
+          <div class="stat-info">
+            <span class="stat-value">{{ animatedFiles }}</span>
+            <span class="stat-label">Files</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">📄</div>
+          <div class="stat-info">
+            <span class="stat-value">{{ animatedReports }}</span>
+            <span class="stat-label">Reports</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">🔗</div>
+          <div class="stat-info">
+            <span class="stat-value">{{ animatedPipelines }}</span>
+            <span class="stat-label">Pipelines</span>
+          </div>
+        </div>
+      </div>
+      <div class="mini-chart">
+        <div class="chart-bar" *ngFor="let bar of chartData; let i = index" 
+             [style.height.%]="bar.value"
+             [style.animation-delay.ms]="i * 100">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Actions Section -->
+  <section class="features-section">
+    <h2 class="section-title">Quick Actions</h2>
+    
+    <!-- Data Input Category -->
+    <div class="category-section">
+      <h3 class="category-title">📥 Data Input</h3>
+      <div class="features-grid">
+        <div 
+          *ngFor="let option of dataInputOptions; let i = index" 
+          class="feature-card glass"
+          [style.animation-delay.ms]="i * 100"
+          (click)="onFeatureAction(option.action)"
+          (mouseenter)="onCardHover($event)"
+          (mouseleave)="onCardLeave($event)"
+        >
+          <div class="card-icon">{{ option.icon }}</div>
+          <h4>{{ option.title }}</h4>
+          <p>{{ option.description }}</p>
+          <div class="card-glow"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Processing Category -->
+    <div class="category-section">
+      <h3 class="category-title">⚙️ Processing</h3>
+      <div class="features-grid">
+        <div 
+          *ngFor="let option of processingOptions; let i = index" 
+          class="feature-card glass"
+          [style.animation-delay.ms]="i * 100"
+          (click)="onFeatureAction(option.action)"
+          (mouseenter)="onCardHover($event)"
+          (mouseleave)="onCardLeave($event)"
+        >
+          <div class="card-icon">{{ option.icon }}</div>
+          <h4>{{ option.title }}</h4>
+          <p>{{ option.description }}</p>
+          <div class="card-glow"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analysis Category -->
+    <div class="category-section">
+      <h3 class="category-title">🔬 Analysis</h3>
+      <div class="features-grid">
+        <div 
+          *ngFor="let option of analysisOptions; let i = index" 
+          class="feature-card glass"
+          [style.animation-delay.ms]="i * 100"
+          (click)="onFeatureAction(option.action)"
+          (mouseenter)="onCardHover($event)"
+          (mouseleave)="onCardLeave($event)"
+        >
+          <div class="card-icon">{{ option.icon }}</div>
+          <h4>{{ option.title }}</h4>
+          <p>{{ option.description }}</p>
+          <div class="card-glow"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Category -->
+    <div class="category-section">
+      <h3 class="category-title">📋 Reports</h3>
+      <div class="features-grid">
+        <div 
+          *ngFor="let option of reportOptions; let i = index" 
+          class="feature-card glass"
+          [style.animation-delay.ms]="i * 100"
+          (click)="onFeatureAction(option.action)"
+          (mouseenter)="onCardHover($event)"
+          (mouseleave)="onCardLeave($event)"
+        >
+          <div class="card-icon">{{ option.icon }}</div>
+          <h4>{{ option.title }}</h4>
+          <p>{{ option.description }}</p>
+          <div class="card-glow"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Files Section -->
+  <section class="recent-section">
+    <div class="section-header">
+      <h2 class="section-title">📁 Recent Uploaded Files</h2>
+      <button class="view-all-btn">View All →</button>
+    </div>
+    <div class="files-carousel" *ngIf="recentUploadedFiles.length > 0">
+      <div class="carousel-track">
+        <div 
+          *ngFor="let file of recentUploadedFiles; let i = index" 
+          class="file-card"
+          [style.animation-delay.ms]="i * 100"
+        >
+          <div class="file-icon">{{ getFileIcon(file.name) }}</div>
+          <div class="file-info">
+            <span class="file-name">{{ file.name }}</span>
+            <span class="file-date">{{ file.date }}</span>
+          </div>
+          <div class="file-actions">
+            <button class="action-btn" title="View">👁️</button>
+            <button class="action-btn" title="Analyze">📊</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="empty-state" *ngIf="recentUploadedFiles.length === 0">
+      <span class="empty-icon">📂</span>
+      <p>No files uploaded yet. Upload a file to get started!</p>
+    </div>
+  </section>
+
+  <!-- Recent Reports Section -->
+  <section class="recent-section">
+    <div class="section-header">
+      <h2 class="section-title">📥 Recent Downloaded Reports</h2>
+      <button class="view-all-btn">View All →</button>
+    </div>
+    <div class="files-carousel" *ngIf="recentDownloadedFiles.length > 0">
+      <div class="carousel-track">
+        <div 
+          *ngFor="let file of recentDownloadedFiles; let i = index" 
+          class="file-card"
+          [style.animation-delay.ms]="i * 100"
+        >
+          <div class="file-icon">📄</div>
+          <div class="file-info">
+            <span class="file-name">{{ file.name }}</span>
+            <span class="file-date">{{ file.date }}</span>
+          </div>
+          <div class="file-actions">
+            <button class="action-btn" title="View">👁️</button>
+            <button class="action-btn" title="Download">⬇️</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="empty-state" *ngIf="recentDownloadedFiles.length === 0">
+      <span class="empty-icon">📭</span>
+      <p>No reports downloaded yet. Generate a report to see it here!</p>
+    </div>
+  </section>
+
+  <!-- Modern Footer -->
+  <footer class="modern-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="assets/complexity.png" alt="Logo" class="footer-logo-image">
+        <span class="logo-text">DataVision</span>
+        <p>Data Summarization & Report Generation</p>
+      </div>
+      <div class="footer-links">
+        <h4>Quick Links</h4>
+        <a href="#">Dashboard</a>
+        <a href="#">Data Sources</a>
+        <a href="#">Pipelines</a>
+        <a href="#">Reports</a>
+      </div>
+      <div class="footer-links">
+        <h4>Resources</h4>
+        <a href="#">📖 Documentation</a>
+        <a href="#">🔌 API Reference</a>
+        <a href="#">❓ Help Center</a>
+      </div>
+      <div class="footer-social">
+        <h4>Connect</h4>
+        <div class="social-icons">
+          <a href="mailto:support@datavision.com" title="Gmail"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" fill="#4285F4"/></svg></a>
+          <a href="tel:+1234567890" title="Phone"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" fill="#4285F4"/></svg></a>
+          <a href="https://github.com" target="_blank" title="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" fill="#333"/></svg></a>
+          <a href="https://twitter.com" target="_blank" title="Twitter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" fill="#1DA1F2"/></svg></a>
+        </div>
+        <div class="api-status">
+          <span class="status-dot"></span>
+          API Status: Operational
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2024 DataVision. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notifications -->
+  <div class="toast-container">
+    <div *ngFor="let toast of toasts" class="toast" [class.show]="toast.show" [class.success]="toast.type === 'success'" [class.error]="toast.type === 'error'">
+      <span class="toast-icon">{{ toast.icon }}</span>
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" (click)="removeToast(toast)">×</button>
+    </div>
+  </div>
+</div>
