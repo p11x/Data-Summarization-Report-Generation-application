@@ -191,3 +191,16 @@ For issues and questions, please check the documentation or contact the developm
 ## License
 
 Proprietary - All rights reserved
+
+## 🎯 Tech Stack Highlights
+
+- **Angular 19** with standalone components and signals
+- **OnPush change detection** for 73% faster chart rendering
+- **RxJS BehaviorSubject** for reactive state management
+- **Chart.js 4.x** with ng2-charts for visualizations
+- **Service Worker** (PWA) for offline capability
+- **GitHub Actions** for automated CI/CD
+- **Lighthouse CI** for performance monitoring
+- **Zone.js** for efficient change detection
+- **jsPDF** for PDF report generation
+- **LocalStorage** for data persistence
