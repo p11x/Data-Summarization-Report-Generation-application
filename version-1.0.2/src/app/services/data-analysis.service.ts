@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { parseCSVLine, parseCSV, calculateNumericStats, detectColumnType } from './utils';
+import { parseCSVLine, parseCSV, parseFile, parseExcel, parsePDF, parseXML, parseHTML, parseDOCX, calculateNumericStats, detectColumnType } from './utils';
 
 /**
  * File data structure containing uploaded file information.
@@ -109,8 +109,60 @@ export class DataAnalysisService {
 
   async processFile(file: File): Promise<void> {
     const startTime = Date.now();
-    const content = await this.readFileContent(file);
-    const { parsedData, headers } = this.parseCSV(content);
+    const ext = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    let parsedData: any[] = [];
+    let headers: string[] = [];
+    let content = '';
+    
+    // Handle Excel files differently (read as ArrayBuffer)
+    if (ext === '.xlsx' || ext === '.xls') {
+      const arrayBuffer = await this.readFileAsArrayBuffer(file);
+      const result = parseExcel(arrayBuffer);
+      parsedData = result.parsedData;
+      headers = result.headers;
+      content = `[Excel Sheet: ${result.sheetName}]`;
+      console.debug(`[processFile] Parsed Excel sheet '${result.sheetName}': ${parsedData.length} rows, ${headers.length} columns`);
+    } else if (ext === '.pdf') {
+      // Handle PDF files (extract text)
+      const arrayBuffer = await this.readFileAsArrayBuffer(file);
+      const result = await parsePDF(arrayBuffer);
+      parsedData = result.parsedData;
+      headers = result.headers;
+      content = `[PDF: ${result.pageCount} pages]`;
+      console.debug(`[processFile] Parsed PDF: ${result.pageCount} pages → ${parsedData.length} text lines`);
+    } else if (ext === '.xml') {
+      // Handle XML files
+      content = await this.readFileContent(file);
+      const result = parseXML(content);
+      parsedData = result.parsedData;
+      headers = result.headers;
+      content = `[XML: <${result.rootElement}>]`;
+      console.debug(`[processFile] Parsed XML: ${parsedData.length} elements from <${result.rootElement}>`);
+    } else if (ext === '.html' || ext === '.htm') {
+      // Handle HTML files
+      content = await this.readFileContent(file);
+      const result = parseHTML(content);
+      parsedData = result.parsedData;
+      headers = result.headers;
+      content = `[HTML: ${result.title}]`;
+      console.debug(`[processFile] Parsed HTML: ${parsedData.length} text blocks from <${result.title}>`);
+    } else if (ext === '.docx') {
+      // Handle DOCX files
+      const arrayBuffer = await this.readFileAsArrayBuffer(file);
+      const result = await parseDOCX(arrayBuffer);
+      parsedData = result.parsedData;
+      headers = result.headers;
+      content = `[DOCX: ${result.paragraphCount} paragraphs]`;
+      console.debug(`[processFile] Parsed DOCX: ${parsedData.length} paragraphs`);
+    } else {
+      // Use text parser for CSV/TXT
+      content = await this.readFileContent(file);
+      const result = parseFile(content, file.name);
+      parsedData = result.parsedData;
+      headers = result.headers;
+      console.debug(`[processFile] Parsed file: ${file.name}, rows: ${parsedData.length}, cols: ${headers.length}`);
+    }
+    
     const processingTime = Date.now() - startTime;
     
     const fileData: FileData = {
@@ -145,12 +197,17 @@ export class DataAnalysisService {
     });
   }
 
-  private parseCSV(content: string): { parsedData: any[], headers: string[] } {
-    return parseCSV(content);
+  private readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as ArrayBuffer);
+      reader.onerror = (e) => reject(e);
+      reader.readAsArrayBuffer(file);
+    });
   }
 
-  private parseCSVLine(line: string): string[] {
-    return parseCSVLine(line);
+  private parseCSV(content: string): { parsedData: any[], headers: string[] } {
+    return parseCSV(content);
   }
 
   private analyzeData(data: any[], headers: string[]): void {
@@ -387,18 +444,7 @@ export class DataAnalysisService {
     return fileData.parsedData.slice(0, rows);
   }
 
-  addUploadedFile(file: { name: string; size: number }): void {
-    const recentFiles = this.recentUploadedFilesSubject.value;
-    const newFile: RecentFile = {
-      name: file.name,
-      date: new Date().toLocaleDateString(),
-      size: `${(file.size / 1024).toFixed(1)} KB`,
-      type: 'uploaded'
-    };
-    this.recentUploadedFilesSubject.next([newFile, ...recentFiles].slice(0, 10));
-  }
 
-  // Filtered Data Storage
   private filteredDataSubject = new BehaviorSubject<{data: any[], headers: string[], appliedOperations: string[]} | null>(null);
   filteredData$ = this.filteredDataSubject.asObservable();
 

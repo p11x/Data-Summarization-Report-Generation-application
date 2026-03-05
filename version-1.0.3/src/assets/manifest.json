@@ -1,0 +1,9 @@
+{
+  "name": "Data Analytics App v1.0.7",
+  "short_name": "Analytics",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
+  "icons": []
+}

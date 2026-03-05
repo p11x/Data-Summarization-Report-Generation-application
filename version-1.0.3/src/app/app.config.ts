@@ -27,7 +27,7 @@ import {
 import { GlobalErrorHandler } from './services/global-error-handler.service';
 import { httpErrorInterceptor, jwtInterceptor } from './services/http-interceptors';
 import { provideServiceWorker } from '@angular/service-worker';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { provideClientHydration } from '@angular/platform-browser';
 
 // Register only the components we need
 Chart.register(
@@ -58,6 +58,6 @@ export const appConfig: ApplicationConfig = {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000'
     }),
-    provideClientHydration(withEventReplay())
+    // provideClientHydration(),  // Disabled for dev to prevent NG0505 warnings
   ]
 };

@@ -27,13 +27,13 @@ export class UploadComponent {
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      // Validate file type
-      const validTypes = ['text/csv', 'application/vnd.ms-excel', 'text/plain'];
-      const validExtensions = ['.csv', '.txt'];
+      // Validate file type - now includes DOCX
+      const validTypes = ['text/csv', 'application/vnd.ms-excel', 'text/plain', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/pdf', 'text/xml', 'application/xml', 'text/html', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      const validExtensions = ['.csv', '.txt', '.xlsx', '.xls', '.pdf', '.xml', '.html', '.htm', '.docx'];
       const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
       
       if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
-        this.uploadError = 'Please upload a CSV file';
+        this.uploadError = 'Please upload a CSV, TXT, Excel, PDF, XML, HTML, or DOCX file';
         this.selectedFile = null;
         return;
       }
@@ -62,7 +62,7 @@ export class UploadComponent {
       this.processingMessage = 'Analysis complete!';
       setTimeout(() => this.router.navigate(['/report']), 800);
     } catch (error) {
-      this.uploadError = 'Error processing file. Please ensure it is a valid CSV.';
+      this.uploadError = 'Error processing file. Please ensure it is a valid CSV, TXT, Excel, PDF, XML, HTML, or DOCX file.';
       this.uploading = false;
       this.processingMessage = '';
     }
