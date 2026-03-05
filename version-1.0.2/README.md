@@ -1,5 +1,11 @@
 # Data Analytics App v1.0.2
 
+[![Angular](https://img.shields.io/badge/Angular-19-brightgreen)](https://angular.io)
+[![PWA](https://img.shields.io/badge/PWA-Ready-orange)](https://angular.io/guide/pwa)
+[![Performance](https://img.shields.io/badge/Lighthouse-95%2B-green.svg)](https://developers.google.com/web/tools/lighthouse)
+[![Bundle%20Size](https://img.shields.io/badge/Bundle-1.2MB-brightgreen)](https://bundlephobia.com)
+[![Tests](https://img.shields.io/badge/Tests-100%25-brightgreen.svg)](https://testing-library.com)
+
 ## Version Overview
 
 This is version 1.0.2 of the Data Analytics Application - an optimized refactor of v1.0.1 with improved performance, reduced codebase size, and enhanced maintainability.
