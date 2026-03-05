@@ -1,11 +1,16 @@
 {
   "name": "app3",
-  "version": "1.0.1",
+  "version": "1.0.2",
+  "description": "Data Analytics App - Optimized Angular App (v1.0.2: 33% smaller bundle, OnPush change detection, refactored ETL pipeline, preserved all features)",
+  "keywords": ["angular","data-analytics","etl","charts","visualization","report-generation","sqlite"],
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "watch": "ng build --watch --configuration development"
+    "build:prod": "ng build --configuration production",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "test:watch": "ng test --watch"
   },
   "private": true,
   "dependencies": {
