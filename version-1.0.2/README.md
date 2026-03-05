@@ -10,6 +10,20 @@
 
 This is version 1.0.2 of the Data Analytics Application - an optimized refactor of v1.0.1 with improved performance, reduced codebase size, and enhanced maintainability.
 
+## 🚀 Screenshots
+
+![Dashboard Overview](screenshots/dashboard.png)
+*Main dashboard with interactive charts*
+
+![File Upload & ETL](screenshots/upload.png)
+*File upload interface with CSV processing*
+
+![Interactive Charts](screenshots/charts.png)
+*Multiple chart types (bar, line, pie, area)*
+
+![Report Generation](screenshots/reports.png)
+*Report generation and download*
+
 ## Version History
 
 ### v1.0.2 (Current - Optimized)
