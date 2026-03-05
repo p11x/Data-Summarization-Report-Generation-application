@@ -1,0 +1,367 @@
+<div class="settings-container">
+  <!-- Header -->
+  <header class="settings-header">
+    <div class="header-content">
+      <img src="assets/complexity.png" alt="Logo" class="header-logo" (click)="goBack()">
+      <button class="back-btn" (click)="goBack()">
+        <span>←</span> Back
+      </button>
+      <h1>Settings</h1>
+      <div class="header-actions">
+        <button class="save-btn" (click)="saveSettings()" [class.disabled]="!hasChanges">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="settings-content">
+    <!-- Sidebar Navigation -->
+    <nav class="settings-nav">
+      <button 
+        class="nav-item" 
+        [class.active]="activeSection === 'appearance'"
+        (click)="setActiveSection('appearance')"
+      >
+        <span class="nav-icon">🎨</span>
+        Appearance
+      </button>
+      <button 
+        class="nav-item" 
+        [class.active]="activeSection === 'notifications'"
+        (click)="setActiveSection('notifications')"
+      >
+        <span class="nav-icon">🔔</span>
+        Notifications
+      </button>
+      <button 
+        class="nav-item" 
+        [class.active]="activeSection === 'privacy'"
+        (click)="setActiveSection('privacy')"
+      >
+        <span class="nav-icon">🔒</span>
+        Privacy
+      </button>
+      <button 
+        class="nav-item" 
+        [class.active]="activeSection === 'security'"
+        (click)="setActiveSection('security')"
+      >
+        <span class="nav-icon">🛡️</span>
+        Security
+      </button>
+      <button 
+        class="nav-item" 
+        [class.active]="activeSection === 'data'"
+        (click)="setActiveSection('data')"
+      >
+        <span class="nav-icon">💾</span>
+        Data & Storage
+      </button>
+    </nav>
+
+    <!-- Settings Sections -->
+    <div class="settings-main">
+      <!-- Appearance Section -->
+      <section class="settings-section" *ngIf="activeSection === 'appearance'">
+        <h2>Appearance</h2>
+        <p class="section-description">Customize how the app looks and feels</p>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Theme</h3>
+            <p>Choose your preferred color theme</p>
+          </div>
+          <div class="setting-control">
+            <select [(ngModel)]="settings.theme" (change)="onSettingChange()">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+              <option value="auto">Auto (System)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Font Size</h3>
+            <p>Adjust the text size for better readability</p>
+          </div>
+          <div class="setting-control">
+            <select [(ngModel)]="settings.fontSize" (change)="onSettingChange()">
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Language</h3>
+            <p>Select your preferred language</p>
+          </div>
+          <div class="setting-control">
+            <select [(ngModel)]="settings.language" (change)="onSettingChange()">
+              <option *ngFor="let lang of languages" [value]="lang.code">
+                {{ lang.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Notifications Section -->
+      <section class="settings-section" *ngIf="activeSection === 'notifications'">
+        <h2>Notifications</h2>
+        <p class="section-description">Manage how you receive notifications</p>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Email Notifications</h3>
+            <p>Receive notifications via email</p>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="settings.emailNotifications" (change)="onSettingChange()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Push Notifications</h3>
+            <p>Receive push notifications in browser</p>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="settings.pushNotifications" (change)="onSettingChange()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Weekly Digest</h3>
+            <p>Get a weekly summary of your activity</p>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="settings.weeklyDigest" (change)="onSettingChange()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Marketing Emails</h3>
+            <p>Receive updates about new features and offers</p>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="settings.marketingEmails" (change)="onSettingChange()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Privacy Section -->
+      <section class="settings-section" *ngIf="activeSection === 'privacy'">
+        <h2>Privacy</h2>
+        <p class="section-description">Control your privacy preferences</p>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Profile Visibility</h3>
+            <p>Who can see your profile</p>
+          </div>
+          <div class="setting-control">
+            <select [(ngModel)]="settings.profileVisibility" (change)="onSettingChange()">
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+              <option value="friends">Friends Only</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Show Email Address</h3>
+            <p>Display your email on your profile</p>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="settings.showEmail" (change)="onSettingChange()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Show Phone Number</h3>
+            <p>Display your phone number on your profile</p>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="settings.showPhone" (change)="onSettingChange()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Activity Status</h3>
+            <p>Show when you're online</p>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="settings.activityStatus" (change)="onSettingChange()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Security Section -->
+      <section class="settings-section" *ngIf="activeSection === 'security'">
+        <h2>Security</h2>
+        <p class="section-description">Protect your account</p>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Two-Factor Authentication</h3>
+            <p>Add an extra layer of security to your account</p>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="settings.twoFactorAuth" (change)="onSettingChange()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Session Timeout</h3>
+            <p>Automatically log out after inactivity (minutes)</p>
+          </div>
+          <div class="setting-control">
+            <input 
+              type="number" 
+              [(ngModel)]="settings.sessionTimeout" 
+              (change)="onSettingChange()"
+              min="5"
+              max="120"
+              class="number-input"
+            >
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Change Password</h3>
+            <p>Update your account password</p>
+          </div>
+          <div class="setting-control">
+            <button class="action-btn">Change Password</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Active Sessions</h3>
+            <p>Manage your active login sessions</p>
+          </div>
+          <div class="setting-control">
+            <button class="action-btn">View Sessions</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data & Storage Section -->
+      <section class="settings-section" *ngIf="activeSection === 'data'">
+        <h2>Data & Storage</h2>
+        <p class="section-description">Manage your data and storage preferences</p>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Auto Backup</h3>
+            <p>Automatically backup your data</p>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="settings.autoBackup" (change)="onSettingChange()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Backup Frequency</h3>
+            <p>How often to backup your data</p>
+          </div>
+          <div class="setting-control">
+            <select [(ngModel)]="settings.backupFrequency" (change)="onSettingChange()">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Data Usage</h3>
+            <p>Current storage usage</p>
+          </div>
+          <div class="setting-control">
+            <span class="data-usage">{{ settings.dataUsage }}</span>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Clear Cache</h3>
+            <p>Clear cached data to free up space</p>
+          </div>
+          <div class="setting-control">
+            <button class="action-btn warning" (click)="clearCache()">Clear Cache</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3>Export Data</h3>
+            <p>Download a copy of your data</p>
+          </div>
+          <div class="setting-control">
+            <button class="action-btn" (click)="exportData()">Export Data</button>
+          </div>
+        </div>
+
+        <div class="setting-item danger-zone">
+          <div class="setting-info">
+            <h3>Delete Account</h3>
+            <p>Permanently delete your account and all data</p>
+          </div>
+          <div class="setting-control">
+            <button class="action-btn danger">Delete Account</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reset to Defaults -->
+      <div class="reset-section">
+        <button class="reset-btn" (click)="resetToDefaults()">
+          Reset All Settings to Defaults
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
