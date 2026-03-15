@@ -1,0 +1,40 @@
+<div class="file-upload-container">
+  <!-- Drag & Drop Zone -->
+  <div 
+    class="drop-zone"
+    [class.dragging]="isDragging"
+    [class.has-file]="selectedFile"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+    (click)="fileInput.click()"
+  >
+    <input 
+      #fileInput
+      type="file"
+      accept=".csv,.xlsx,.xls,.json"
+      (change)="onFileInput($event)"
+      style="display: none"
+    />
+    
+    <div class="upload-content" *ngIf="!selectedFile">
+      <div class="upload-icon">📁</div>
+      <h3>Drop your file here</h3>
+      <p>or click to browse</p>
+    </div>
+
+    <div class="file-info" *ngIf="selectedFile">
+      <div class="file-icon">📄</div>
+      <div class="file-details">
+        <span class="file-name">{{ selectedFile.name }}</span>
+        <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
+      </div>
+      <button class="remove-btn" (click)="removeFile(); $event.stopPropagation()">×</button>
+    </div>
+
+    <!-- Upload Progress -->
+    <div class="progress-bar" *ngIf="isUploading">
+      <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,105 @@
+<div class="visualization-dashboard">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="back-btn" (click)="goBack()">
+          ← Back
+        </button>
+        <h1>📊 Visualization Dashboard</h1>
+      </div>
+      <div class="header-info" *ngIf="dataset">
+        <span class="dataset-name">{{ dataset.metadata.filename }}</span>
+        <span class="dataset-stats">{{ dataset.metadata.rowCount }} rows • {{ dataset.metadata.columnNames.length }} columns</span>
+      </div>
+      <div class="header-actions">
+        <button class="action-btn" (click)="toggleFilterPanel()">
+          🔍 Filters
+        </button>
+        <button class="action-btn" (click)="refreshVisualizations()">
+          🔄 Refresh
+        </button>
+        <button class="action-btn primary" (click)="goToDownload()">
+          ⬇️ Download
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filter Panel -->
+  <app-visualization-filter-panel
+    *ngIf="showFilterPanel"
+    [isOpen]="showFilterPanel"
+    (filterChange)="onFilterChange($event)"
+    (closePanel)="toggleFilterPanel()">
+  </app-visualization-filter-panel>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="loader"></div>
+      <p>Generating visualizations...</p>
+    </div>
+
+    <!-- Visualization Stats -->
+    <div class="viz-stats" *ngIf="!isLoading">
+      <div class="stat-card">
+        <span class="stat-icon">📊</span>
+        <div class="stat-info">
+          <span class="stat-value">{{ getVisualizationCount() }}</span>
+          <span class="stat-label">Total Visualizations</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">📈</span>
+        <div class="stat-info">
+          <span class="stat-value">{{ getBasicVizCount() }}</span>
+          <span class="stat-label">Basic Charts</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">⚡</span>
+        <div class="stat-info">
+          <span class="stat-value">{{ getIntermediateVizCount() }}</span>
+          <span class="stat-label">Intermediate</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">🎯</span>
+        <div class="stat-info">
+          <span class="stat-value">{{ getAdvancedVizCount() }}</span>
+          <span class="stat-label">Advanced</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visualizations - Stacked Vertical Layout -->
+    <div class="viz-stacked" *ngIf="!isLoading">
+      <div class="viz-category" *ngIf="getBasicVizCount() > 0">
+        <h3>📈 Basic Visualizations</h3>
+        <div class="charts-stacked">
+          <app-visualization-chart-card
+            *ngFor="let viz of visualizations"
+            [visualization]="viz"
+            [isSelected]="isVisualizationSelected(viz.id)"
+            [datasetData]="dataset?.data || []"
+            [columnNames]="dataset?.metadata?.columnNames || []"
+            [numericColumns]="getNumericColumns()"
+            [categoricalColumns]="getCategoricalColumns()">
+          </app-visualization-chart-card>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!isLoading && visualizations.length === 0">
+      <div class="empty-icon">📊</div>
+      <h2>No Visualizations Generated</h2>
+      <p>Upload a dataset to generate interactive visualizations.</p>
+      <button class="upload-btn" (click)="goToUpload()">
+        Upload Dataset
+      </button>
+    </div>
+  </main>
+</div>

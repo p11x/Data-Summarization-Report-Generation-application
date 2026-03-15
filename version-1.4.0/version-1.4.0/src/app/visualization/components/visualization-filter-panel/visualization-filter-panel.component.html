@@ -1,0 +1,60 @@
+<div class="filter-panel" [class.open]="isOpen">
+  <div class="panel-header">
+    <h3>🔍 Filters</h3>
+    <button class="close-btn" (click)="onClose()">✕</button>
+  </div>
+
+  <div class="panel-content">
+    <!-- Add New Filter -->
+    <div class="add-filter-section">
+      <h4>Add Filter</h4>
+      <div class="filter-form">
+        <div class="form-group">
+          <label>Column</label>
+          <select [(ngModel)]="newFilter.column" class="form-select">
+            <option value="">Select column</option>
+            <option *ngFor="let col of columns" [value]="col">
+              {{ col }} ({{ getColumnType(col) }})
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Filter Type</label>
+          <select [(ngModel)]="newFilter.type" class="form-select">
+            <option value="column">Column Filter</option>
+            <option value="value">Value Range</option>
+            <option value="date-range">Date Range</option>
+            <option value="category">Category</option>
+          </select>
+        </div>
+
+        <button class="add-filter-btn" (click)="addFilter()">
+          + Add Filter
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Filters -->
+    <div class="active-filters" *ngIf="filters.length > 0">
+      <h4>Active Filters ({{ filters.length }})</h4>
+      <div class="filter-list">
+        <div class="filter-item" *ngFor="let filter of filters; let i = index">
+          <div class="filter-info">
+            <span class="filter-column">{{ filter.column }}</span>
+            <span class="filter-type">{{ getFilterTypeLabel(filter.type) }}</span>
+          </div>
+          <button class="remove-filter-btn" (click)="removeFilter(i)">✕</button>
+        </div>
+      </div>
+      <button class="clear-all-btn" (click)="clearFilters()">
+        Clear All Filters
+      </button>
+    </div>
+
+    <!-- No Filters -->
+    <div class="no-filters" *ngIf="filters.length === 0">
+      <p>No filters applied. Add filters to refine your visualizations.</p>
+    </div>
+  </div>
+</div>

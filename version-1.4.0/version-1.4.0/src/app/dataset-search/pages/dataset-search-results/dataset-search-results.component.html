@@ -1,0 +1,192 @@
+<div class="search-results-container">
+  <!-- Header Section -->
+  <div class="search-header">
+    <div class="header-content">
+      <button class="back-btn" (click)="goToHome()">
+        <span class="back-icon">←</span> Back to Home
+      </button>
+      
+      <div class="search-bar-large">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (input)="onSearchInput()"
+          (keyup.enter)="performSearch()"
+          placeholder="Search datasets..."
+          class="search-input-large"
+        />
+        <button class="search-btn" (click)="performSearch()">Search</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Info Banner - Only show when not loading -->
+    <div class="info-banner" *ngIf="!loading">
+      <span class="info-icon">ℹ️</span>
+      <span class="info-text" *ngIf="usingFallback">
+        <strong>Recommended Datasets:</strong> No datasets found from providers. Showing popular datasets instead.
+      </span>
+      <span class="info-text" *ngIf="!usingFallback">
+        <strong>Unified Search:</strong> Results automatically include datasets from GitHub and Data.gov. 
+        Click "Analyze Dataset" to fetch and analyze any dataset.
+      </span>
+    </div>
+
+    <!-- Results Section -->
+    <main class="results-section">
+      <!-- Results Header -->
+      <div class="results-header">
+        <div class="results-count">
+          <h2>Results for "{{ searchQuery }}"</h2>
+          <span class="count-badge" *ngIf="!loading">
+            {{ pagination.totalItems }} datasets found
+            <!-- Debug info: -->
+            <!-- results={{results.length}} page={{currentPage}} pages={{pagination.totalPages}} loading={{loading}} -->
+          </span>
+        </div>
+      </div>
+
+      <!-- Loading State with Skeletons -->
+      <div class="loading-state" *ngIf="loading">
+        <div class="skeleton-grid">
+          <div class="skeleton-card" *ngFor="let i of [1,2,3,4,5,6]">
+            <div class="skeleton-header">
+              <div class="skeleton-badge"></div>
+              <div class="skeleton-badge-small"></div>
+            </div>
+            <div class="skeleton-title"></div>
+            <div class="skeleton-description"></div>
+            <div class="skeleton-description-short"></div>
+            <div class="skeleton-stats">
+              <div class="skeleton-stat"></div>
+              <div class="skeleton-stat"></div>
+              <div class="skeleton-stat"></div>
+            </div>
+            <div class="skeleton-button"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div class="error-state" *ngIf="error && !loading">
+        <div class="error-icon">⚠️</div>
+        <p>{{ error }}</p>
+        <button class="retry-btn" (click)="performSearch()">Try Again</button>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!loading && !error && results.length === 0 && searchQuery">
+        <div class="empty-icon">📊</div>
+        <h3>No datasets found</h3>
+        <p>Try a different search term or check your spelling</p>
+      </div>
+
+      <!-- No Search Yet -->
+      <div class="empty-state" *ngIf="!loading && !error && !searchQuery">
+        <div class="empty-icon">🔍</div>
+        <h3>Search for Datasets</h3>
+        <p>Enter a search term to find datasets from GitHub and Data.gov</p>
+      </div>
+
+      <!-- Results Grid -->
+      <div class="results-grid" *ngIf="!loading && paginatedResults.length > 0">
+        <div class="dataset-card" *ngFor="let result of paginatedResults">
+          <!-- Card Header -->
+          <div class="card-header">
+            <div class="source-badge">
+              <span class="source-icon">{{ getProviderIcon(result.dataset.source) }}</span>
+              <span class="source-name">{{ getProviderName(result.dataset.source) }}</span>
+            </div>
+            <div class="format-badge">{{ result.dataset.format.toUpperCase() }}</div>
+          </div>
+
+          <!-- Card Body -->
+          <div class="card-body">
+            <h3 class="dataset-title">{{ result.dataset.title }}</h3>
+            <p class="dataset-description">{{ result.dataset.description }}</p>
+
+            <!-- Dataset Stats -->
+            <div class="dataset-stats">
+              <div class="stat-item">
+                <span class="stat-label">Rows</span>
+                <span class="stat-value">{{ formatNumber(result.dataset.rows) }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Columns</span>
+                <span class="stat-value">{{ formatNumber(result.dataset.columns) }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Size</span>
+                <span class="stat-value">{{ result.dataset.fileSize }}</span>
+              </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="dataset-tags" *ngIf="result.dataset.tags?.length">
+              <span class="tag" *ngFor="let tag of result.dataset.tags?.slice(0, 3)">{{ tag }}</span>
+            </div>
+          </div>
+
+          <!-- Card Footer -->
+          <div class="card-footer">
+            <button class="analyze-btn" (click)="analyzeDataset(result)">
+              📊 Analyze Dataset
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="pagination.totalPages > 1">
+        <button 
+          class="page-btn" 
+          [disabled]="currentPage === 1"
+          (click)="goToPage(1)"
+        >
+          ««
+        </button>
+        <button 
+          class="page-btn" 
+          [disabled]="currentPage === 1"
+          (click)="goToPage(currentPage - 1)"
+        >
+          «
+        </button>
+        
+        <button 
+          *ngFor="let page of getPageNumbers()"
+          class="page-btn"
+          [class.active]="page === currentPage"
+          (click)="goToPage(page)"
+        >
+          {{ page }}
+        </button>
+        
+        <button 
+          class="page-btn" 
+          [disabled]="currentPage === pagination.totalPages"
+          (click)="goToPage(currentPage + 1)"
+        >
+          »
+        </button>
+        <button 
+          class="page-btn" 
+          [disabled]="currentPage === pagination.totalPages"
+          (click)="goToPage(pagination.totalPages)"
+        >
+          »»
+        </button>
+      </div>
+
+      <!-- Load More for Infinite Scroll -->
+      <div class="load-more" *ngIf="hasMoreResults && !loading">
+        <button class="load-more-btn" (click)="loadMoreResults()">
+          Load More Datasets ({{ pagination.totalItems - (currentPage * pageSize) }} more)
+        </button>
+      </div>
+    </main>
+  </div>
+</div>

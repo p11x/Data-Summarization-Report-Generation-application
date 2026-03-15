@@ -1,0 +1,172 @@
+<div class="search-report-container">
+  <!-- Header -->
+  <div class="report-header">
+    <div class="header-content">
+      <button class="back-btn" (click)="goToSearch()">
+        <span class="back-icon">←</span> Back to Search
+      </button>
+      
+      <div class="header-title">
+        <h1>Dataset Analysis Report</h1>
+        <p class="dataset-name">{{ datasetTitle }}</p>
+      </div>
+
+      <div class="header-actions">
+        <button class="action-btn" (click)="goToHome()">
+          🏠 Home
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <h2>Analyzing Dataset...</h2>
+    <p>Fetching and processing your data</p>
+    <div class="loading-steps">
+      <div class="step">📥 Downloading dataset</div>
+      <div class="step">🔍 Parsing data</div>
+      <div class="step">📊 Running analysis</div>
+      <div class="step">💡 Generating insights</div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-container" *ngIf="error && !loading">
+    <div class="error-icon">⚠️</div>
+    <h2>Unable to Load Dataset</h2>
+    <p class="error-message">{{ error }}</p>
+    
+    <div class="error-help" *ngIf="error.includes('Unsupported') || error.includes('HTML') || error.includes('authentication')">
+      <h3>💡 Recommended Dataset Sources:</h3>
+      <ul>
+        <li><strong>GitHub Raw:</strong> raw.githubusercontent.com/username/repo/main/file.csv</li>
+        <li><strong>UCI ML Repository:</strong> archive.ics.uci.edu/ml/...</li>
+        <li><strong>OpenML:</strong> openml.org/...</li>
+        <li><strong>Data.gov:</strong> data.gov/...</li>
+      </ul>
+      <h3>❌ Sources That Don't Work:</h3>
+      <ul>
+        <li>Kaggle (requires authentication)</li>
+        <li>Google Drive (requires authentication)</li>
+        <li>Dropbox (requires authentication)</li>
+        <li>Dataset listing pages (not direct CSV files)</li>
+      </ul>
+    </div>
+    
+    <div class="error-actions">
+      <button class="retry-btn" (click)="goToSearch()">← Back to Search</button>
+    </div>
+  </div>
+
+  <!-- Report Content -->
+  <div class="report-content" *ngIf="!loading && !error && reportGenerated">
+    <!-- Dataset Info Card -->
+    <section class="section dataset-info-section">
+      <div class="section-header">
+        <h2>📋 Dataset Information</h2>
+      </div>
+      <div class="info-grid">
+        <div class="info-card" *ngFor="let result of analysisResults">
+          <span class="info-label">{{ result.label }}</span>
+          <span class="info-value">{{ formatNumber(result.value) }}</span>
+        </div>
+      </div>
+      <div class="dataset-url">
+        <strong>Source URL:</strong> 
+        <a [href]="datasetUrl" target="_blank">{{ datasetUrl }}</a>
+      </div>
+    </section>
+
+    <!-- Insights Section -->
+    <section class="section insights-section">
+      <div class="section-header">
+        <h2>💡 AI Insights</h2>
+      </div>
+      <div class="insights-list">
+        <div class="insight-item" *ngFor="let insight of insights; let i = index">
+          <span class="insight-number">{{ i + 1 }}</span>
+          <p>{{ insight }}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visualizations Section -->
+    <section class="section visualizations-section">
+      <div class="section-header">
+        <h2>📊 Visualizations</h2>
+      </div>
+      <div class="visualizations-grid">
+        <div class="viz-card" *ngFor="let viz of visualizations">
+          <div class="viz-preview">
+            <div class="placeholder-chart">
+              <span class="chart-icon">📈</span>
+            </div>
+          </div>
+          <div class="viz-info">
+            <h3>{{ viz.title }}</h3>
+            <p>{{ viz.description }}</p>
+            <span class="viz-type">{{ viz.type }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Export Section -->
+    <section class="section export-section">
+      <div class="section-header">
+        <h2>📥 Export Report</h2>
+      </div>
+      <div class="export-options">
+        <div class="export-format">
+          <label>Select Format:</label>
+          <div class="format-buttons">
+            <button 
+              class="format-btn" 
+              [class.active]="exportFormat === 'pdf'"
+              (click)="exportFormat = 'pdf'"
+            >
+              📄 PDF
+            </button>
+            <button 
+              class="format-btn" 
+              [class.active]="exportFormat === 'csv'"
+              (click)="exportFormat = 'csv'"
+            >
+              📊 CSV
+            </button>
+            <button 
+              class="format-btn" 
+              [class.active]="exportFormat === 'excel'"
+              (click)="exportFormat = 'excel'"
+            >
+              📗 Excel
+            </button>
+          </div>
+        </div>
+        <div class="export-actions">
+          <button class="export-btn primary" (click)="exportReport()">
+            Download Report
+          </button>
+          <button class="export-btn secondary" (click)="regenerateAnalysis()">
+            ↻ Regenerate
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Initial State -->
+  <div class="initial-container" *ngIf="!loading && !error && !reportGenerated">
+    <div class="initial-content">
+      <div class="dataset-preview">
+        <h2>{{ datasetTitle }}</h2>
+        <p>Ready to analyze this dataset</p>
+      </div>
+      <button class="analyze-btn" (click)="fetchDataset()">
+        🚀 Start Analysis
+      </button>
+    </div>
+  </div>
+</div>

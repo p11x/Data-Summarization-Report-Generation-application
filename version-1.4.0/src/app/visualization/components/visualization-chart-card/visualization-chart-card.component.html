@@ -1,0 +1,85 @@
+<div class="chart-card" [class.selected]="isSelected">
+  <!-- Card Header -->
+  <div class="card-header">
+    <div class="chart-type-icon" [style.background]="getChartTypeColor()">
+      {{ getChartTypeIcon() }}
+    </div>
+    <div class="header-info">
+      <h4>{{ visualization.config.title }}</h4>
+      <span class="chart-type">{{ visualization.config.type | titlecase }} Chart</span>
+    </div>
+    <div class="card-actions">
+      <button class="control-btn" (click)="onRefresh()" title="Refresh">
+        <span>🔄</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Chart Controls Section -->
+  <div class="chart-controls">
+    <div class="control-row">
+      <!-- Chart Type Selector -->
+      <div class="control-group">
+        <label>Chart Type</label>
+        <select class="control-select" [(ngModel)]="currentConfig.chartType" (ngModelChange)="onChartTypeChange()">
+          <option *ngFor="let type of chartTypes" [value]="type.value">
+            {{ type.icon }} {{ type.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- X-Axis Selector -->
+      <div class="control-group">
+        <label>X-Axis</label>
+        <select class="control-select" [(ngModel)]="currentConfig.xAxis" (ngModelChange)="onXAxisChange()">
+          <option value="">Select Column</option>
+          <option *ngFor="let col of columnNames" [value]="col">
+            {{ col }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Y-Axis Selector -->
+      <div class="control-group">
+        <label>Y-Axis</label>
+        <select class="control-select" [(ngModel)]="currentConfig.yAxis" (ngModelChange)="onYAxisChange()">
+          <option value="">Select Column</option>
+          <option *ngFor="let col of numericColumns" [value]="col">
+            {{ col }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Aggregation Selector -->
+      <div class="control-group">
+        <label>Aggregation</label>
+        <select class="control-select" [(ngModel)]="currentConfig.aggregation" (ngModelChange)="onAggregationChange()">
+          <option *ngFor="let agg of aggregations" [value]="agg.value">
+            {{ agg.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Scale Selector -->
+      <div class="control-group">
+        <label>Scale</label>
+        <select class="control-select" [(ngModel)]="currentConfig.scale" (ngModelChange)="onScaleChange()">
+          <option *ngFor="let scale of scales" [value]="scale.value">
+            {{ scale.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Preview - Always Visible -->
+  <div class="chart-preview">
+    <canvas #chartCanvas width="800" height="400"></canvas>
+  </div>
+
+  <!-- Insights -->
+  <div class="card-insights">
+    <span class="insight-icon">💡</span>
+    <p>{{ visualization.insights }}</p>
+  </div>
+</div>

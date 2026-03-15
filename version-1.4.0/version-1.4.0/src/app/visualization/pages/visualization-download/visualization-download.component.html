@@ -1,0 +1,115 @@
+<div class="visualization-download-page">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="back-btn" (click)="goBack()">
+          ← Back
+        </button>
+        <h1>⬇️ Download Visualizations</h1>
+      </div>
+      <div class="header-actions">
+        <button class="action-btn" (click)="goToDashboard()">
+          Go to Dashboard
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- No Visualizations -->
+    <div class="empty-state" *ngIf="visualizations.length === 0">
+      <div class="empty-icon">📊</div>
+      <h2>No Visualizations Available</h2>
+      <p>Generate visualizations in the dashboard first.</p>
+      <button class="btn btn-primary" (click)="goToDashboard()">
+        Go to Dashboard
+      </button>
+    </div>
+
+    <!-- Download Content -->
+    <div class="download-content" *ngIf="visualizations.length > 0">
+      <!-- Selection Controls -->
+      <div class="selection-controls">
+        <div class="selection-info">
+          <span>{{ getSelectedCount() }} of {{ visualizations.length }} selected</span>
+        </div>
+        <div class="selection-actions">
+          <button class="btn btn-small" (click)="selectAll()">Select All</button>
+          <button class="btn btn-small" (click)="deselectAll()">Deselect All</button>
+        </div>
+      </div>
+
+      <!-- Visualization Grid -->
+      <div class="viz-grid">
+        <div 
+          class="viz-card"
+          *ngFor="let viz of visualizations"
+          [class.selected]="isSelected(viz.id)"
+          (click)="toggleSelection(viz.id)"
+        >
+          <div class="checkbox">
+            <span *ngIf="isSelected(viz.id)">✓</span>
+          </div>
+          <div class="viz-icon">{{ getChartTypeIcon(viz.config.type) }}</div>
+          <div class="viz-info">
+            <h4>{{ viz.config.title }}</h4>
+            <span class="viz-type">{{ viz.config.type | titlecase }}</span>
+          </div>
+          <div class="viz-preview">
+            {{ viz.insights.substring(0, 80) }}...
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Options -->
+      <div class="export-section">
+        <h3>Export Options</h3>
+        
+        <div class="format-selector">
+          <label class="format-option" [class.active]="exportFormat === 'png'">
+            <input type="radio" name="format" value="png" [(ngModel)]="exportFormat">
+            <span class="format-icon">🖼️</span>
+            <span class="format-label">PNG</span>
+          </label>
+          <label class="format-option" [class.active]="exportFormat === 'pdf'">
+            <input type="radio" name="format" value="pdf" [(ngModel)]="exportFormat">
+            <span class="format-icon">📄</span>
+            <span class="format-label">PDF</span>
+          </label>
+          <label class="format-option" [class.active]="exportFormat === 'pptx'">
+            <input type="radio" name="format" value="pptx" [(ngModel)]="exportFormat">
+            <span class="format-icon">📽️</span>
+            <span class="format-label">PowerPoint</span>
+          </label>
+          <label class="format-option" [class.active]="exportFormat === 'excel'">
+            <input type="radio" name="format" value="excel" [(ngModel)]="exportFormat">
+            <span class="format-icon">📗</span>
+            <span class="format-label">Excel</span>
+          </label>
+        </div>
+
+        <div class="export-options">
+          <label class="checkbox-option">
+            <input type="checkbox" [(ngModel)]="includeTitle">
+            <span>Include Title</span>
+          </label>
+          <label class="checkbox-option">
+            <input type="checkbox" [(ngModel)]="includeInsights">
+            <span>Include Insights</span>
+          </label>
+        </div>
+
+        <button 
+          class="btn btn-generate" 
+          (click)="exportVisualizations()"
+          [disabled]="selectedIds.length === 0 || isExporting"
+        >
+          <span *ngIf="!isExporting">Download {{ getSelectedCount() }} Visualizations</span>
+          <span *ngIf="isExporting">Generating Export...</span>
+        </button>
+      </div>
+    </div>
+  </main>
+</div>

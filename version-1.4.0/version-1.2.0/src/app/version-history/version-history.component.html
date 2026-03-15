@@ -1,0 +1,306 @@
+<div class="version-history-container">
+  <!-- Header -->
+  <header class="history-header">
+    <div class="header-top">
+      <div class="header-left">
+        <button class="back-btn" (click)="goToDashboard()">← Back to Dashboard</button>
+        <h1>📜 Report Version History</h1>
+      </div>
+      <div class="header-actions">
+        <button class="action-btn" (click)="showSaveVersionModal = true" *ngIf="currentReportId">
+          💾 Save Current Version
+        </button>
+        <button class="action-btn" (click)="goToReport()">
+          📊 View Current Report
+        </button>
+      </div>
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-value">{{ versions.length }}</span>
+        <span class="stat-label">Total Versions</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ getUniqueReportIds().length }}</span>
+        <span class="stat-label">Reports</span>
+      </div>
+      <div class="stat-item" *ngIf="selectedVersions.length > 0">
+        <span class="stat-value">{{ selectedVersions.length }}</span>
+        <span class="stat-label">Selected for Compare</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (ngModelChange)="applyFilters()"
+        placeholder="Search versions..."
+      />
+    </div>
+    
+    <div class="filter-group">
+      <select [(ngModel)]="filterReportId" (ngModelChange)="applyFilters()">
+        <option value="">All Reports</option>
+        <option *ngFor="let id of getUniqueReportIds()" [value]="id">{{ id }}</option>
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <select [(ngModel)]="sortBy" (ngModelChange)="applyFilters()">
+        <option value="date">Sort by Date</option>
+        <option value="version">Sort by Version</option>
+        <option value="name">Sort by Name</option>
+      </select>
+      <button class="sort-dir-btn" (click)="sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'; applyFilters()">
+        {{ sortDirection === 'asc' ? '↑' : '↓' }}
+      </button>
+    </div>
+    
+    <div class="selection-actions" *ngIf="selectedVersions.length > 0">
+      <button class="compare-btn" (click)="compareSelectedVersions()" [disabled]="selectedVersions.length !== 2">
+        🔄 Compare Selected ({{ selectedVersions.length }}/2)
+      </button>
+      <button class="clear-btn" (click)="clearSelection()">Clear</button>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="versions.length === 0" class="empty-state">
+    <div class="empty-icon">📜</div>
+    <h2>No Version History</h2>
+    <p>Save your first report version to start tracking changes over time.</p>
+    <button class="primary-btn" (click)="goToReport()">Generate Report</button>
+  </div>
+
+  <!-- Version List -->
+  <div *ngIf="versions.length > 0" class="version-list">
+    <div 
+      *ngFor="let version of filteredVersions" 
+      class="version-card"
+      [class.selected]="isVersionSelected(version)"
+      (click)="viewVersion(version)"
+    >
+      <div class="version-checkbox" (click)="$event.stopPropagation(); toggleVersionSelection(version)">
+        <input 
+          type="checkbox" 
+          [checked]="isVersionSelected(version)"
+          (change)="toggleVersionSelection(version)"
+        />
+      </div>
+      
+      <div class="version-info">
+        <div class="version-header">
+          <span class="version-number">v{{ version.versionNumber }}</span>
+          <span class="file-name">{{ version.fileName }}</span>
+          <span class="favorite-badge" *ngIf="version.isFavorite">⭐</span>
+        </div>
+        
+        <div class="version-meta">
+          <span class="meta-item">
+            <span class="meta-icon">📅</span>
+            {{ formatDate(version.createdAt) }}
+          </span>
+          <span class="meta-item">
+            <span class="meta-icon">⏱️</span>
+            {{ version.processingTime }}ms
+          </span>
+          <span class="meta-item">
+            <span class="meta-icon">💾</span>
+            {{ formatFileSize(version.fileSize) }}
+          </span>
+          <span class="meta-item">
+            <span class="meta-icon">📊</span>
+            {{ version.dataSummary.totalRows | number }} rows
+          </span>
+        </div>
+        
+        <div class="version-tags" *ngIf="version.tags.length > 0">
+          <span *ngFor="let tag of version.tags" class="tag">{{ tag }}</span>
+        </div>
+        
+        <div class="version-description" *ngIf="version.description">
+          {{ version.description }}
+        </div>
+      </div>
+      
+      <div class="version-actions">
+        <button class="icon-btn" (click)="$event.stopPropagation(); toggleFavorite(version, $event)" title="Toggle Favorite">
+          {{ version.isFavorite ? '⭐' : '☆' }}
+        </button>
+        <button class="icon-btn" (click)="$event.stopPropagation(); loadVersion(version)" title="Load Version">
+          📂
+        </button>
+        <button class="icon-btn" (click)="$event.stopPropagation(); exportVersion(version, $event)" title="Export">
+          📤
+        </button>
+        <button class="icon-btn danger" (click)="$event.stopPropagation(); deleteVersion(version, $event)" title="Delete">
+          🗑️
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Version Modal -->
+  <div *ngIf="showSaveVersionModal" class="modal-overlay" (click)="showSaveVersionModal = false">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>💾 Save Current Report as New Version</h2>
+        <button class="modal-close" (click)="showSaveVersionModal = false">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Description (optional)</label>
+          <textarea 
+            [(ngModel)]="newVersionDescription" 
+            placeholder="Describe what makes this version special..."
+            rows="3"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label>Tags (comma-separated)</label>
+          <input 
+            type="text" 
+            [(ngModel)]="newVersionTags" 
+            placeholder="e.g., Q1, important, baseline"
+          />
+        </div>
+        <div class="version-preview">
+          <h4>Current Report Details</h4>
+          <p><strong>File:</strong> {{ currentFileName }}</p>
+          <p><strong>Report ID:</strong> {{ currentReportId }}</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="showSaveVersionModal = false">Cancel</button>
+        <button class="save-btn" (click)="saveCurrentVersion()">Save Version</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Version Detail Modal -->
+  <div *ngIf="showVersionDetailModal && selectedVersion" class="modal-overlay" (click)="showVersionDetailModal = false">
+    <div class="modal-container large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>📋 Version {{ selectedVersion.versionNumber }} Details</h2>
+        <button class="modal-close" (click)="showVersionDetailModal = false">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-section">
+            <h4>📄 File Information</h4>
+            <p><strong>File Name:</strong> {{ selectedVersion.fileName }}</p>
+            <p><strong>File Size:</strong> {{ formatFileSize(selectedVersion.fileSize) }}</p>
+            <p><strong>Processing Time:</strong> {{ selectedVersion.processingTime }}ms</p>
+          </div>
+          
+          <div class="detail-section">
+            <h4>📊 Data Summary</h4>
+            <p><strong>Total Rows:</strong> {{ selectedVersion.dataSummary.totalRows | number }}</p>
+            <p><strong>Total Columns:</strong> {{ selectedVersion.dataSummary.totalColumns }}</p>
+            <p><strong>Numeric Columns:</strong> {{ selectedVersion.dataSummary.numericColumns }}</p>
+            <p><strong>Text Columns:</strong> {{ selectedVersion.dataSummary.textColumns }}</p>
+            <p><strong>Missing Values:</strong> {{ selectedVersion.dataSummary.missingValues }} ({{ selectedVersion.dataSummary.missingPercentage | number:'1.1-1' }}%)</p>
+            <p><strong>Duplicate Rows:</strong> {{ selectedVersion.dataSummary.duplicateRows }}</p>
+          </div>
+          
+          <div class="detail-section">
+            <h4>🔬 Column Analysis</h4>
+            <div class="column-list">
+              <div *ngFor="let col of selectedVersion.columnAnalysis" class="column-item">
+                <span class="col-name">{{ col.name }}</span>
+                <span class="col-type" [class]="col.type.toLowerCase()">{{ col.type }}</span>
+                <span class="col-stats" *ngIf="col.type === 'Numeric'">
+                  min: {{ col.min | number:'1.1-2' }}, max: {{ col.max | number:'1.1-2' }}, mean: {{ col.mean | number:'1.1-2' }}
+                </span>
+                <span class="col-stats" *ngIf="col.type === 'Text'">
+                  unique: {{ col.unique }}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="detail-section" *ngIf="selectedVersion.keyInsights.length > 0">
+            <h4>💡 Key Insights</h4>
+            <div class="insights-list">
+              <div *ngFor="let insight of selectedVersion.keyInsights" class="insight-item">
+                <span class="insight-type">{{ insight.type }}</span>
+                <strong>{{ insight.title }}</strong>
+                <p>{{ insight.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="showVersionDetailModal = false">Close</button>
+        <button class="primary-btn" (click)="loadVersion(selectedVersion); showVersionDetailModal = false">
+          📂 Load This Version
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison Modal -->
+  <div *ngIf="showComparisonModal && comparisonResult" class="modal-overlay" (click)="showComparisonModal = false">
+    <div class="modal-container extra-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>🔄 Version Comparison</h2>
+        <button class="modal-close" (click)="showComparisonModal = false">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="comparison-header">
+          <div class="version-box version-1">
+            <h4>Version {{ comparisonResult.version1.versionNumber }}</h4>
+            <p>{{ comparisonResult.version1.fileName }}</p>
+            <p class="date">{{ formatDate(comparisonResult.version1.createdAt) }}</p>
+          </div>
+          <div class="vs-divider">VS</div>
+          <div class="version-box version-2">
+            <h4>Version {{ comparisonResult.version2.versionNumber }}</h4>
+            <p>{{ comparisonResult.version2.fileName }}</p>
+            <p class="date">{{ formatDate(comparisonResult.version2.createdAt) }}</p>
+          </div>
+        </div>
+        
+        <div class="comparison-differences">
+          <h4>📊 Differences</h4>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Old Value</th>
+                <th>New Value</th>
+                <th>Change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let diff of comparisonResult.differences" [class]="getChangeTypeClass(diff.changeType)">
+                <td>{{ diff.field }}</td>
+                <td>{{ diff.oldValue }}</td>
+                <td>{{ diff.newValue }}</td>
+                <td>
+                  <span class="change-badge" [class]="diff.changeType">
+                    {{ diff.changeType === 'added' ? '+ Added' : diff.changeType === 'removed' ? '- Removed' : diff.changeType === 'modified' ? '~ Modified' : '= Unchanged' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="showComparisonModal = false">Close</button>
+        <button class="primary-btn" (click)="loadVersion(comparisonResult.version2); showComparisonModal = false">
+          📂 Load Newer Version
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

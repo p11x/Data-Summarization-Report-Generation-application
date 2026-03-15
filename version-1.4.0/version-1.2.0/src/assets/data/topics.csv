@@ -1,0 +1,31 @@
+id,category,name,description,keywords
+1,Technology,Artificial Intelligence,AI and machine learning technologies for data analysis,AI;machine learning;neural networks;deep learning;automation
+2,Technology,Cloud Computing,Cloud infrastructure and services for data storage and processing,cloud;AWS;Azure;GCP;serverless;infrastructure
+3,Technology,Cybersecurity,Security measures and threat analysis for data protection,security;encryption;firewall;threat detection;vulnerability
+4,Technology,Data Science,Statistical analysis and data mining techniques,statistics;analytics;data mining;predictive modeling;visualization
+5,Technology,Internet of Things,IoT devices and sensor data analysis,IoT;sensors;connected devices;smart devices;edge computing
+6,Business,Financial Analysis,Financial data analysis and market trends,finance;investment;market analysis;stocks;revenue
+7,Business,Marketing Analytics,Marketing performance and campaign analysis,marketing;campaigns;ROI;customer acquisition;conversion
+8,Business,Supply Chain,Supply chain optimization and logistics analysis,supply chain;logistics;inventory;procurement;distribution
+9,Business,Human Resources,HR metrics and workforce analytics,HR;employees;recruitment;performance;retention
+10,Business,Sales Performance,Sales data analysis and revenue tracking,sales;revenue;targets;quotas;pipeline
+11,Healthcare,Medical Research,Clinical trials and medical data analysis,clinical;trials;patients;treatment;outcomes
+12,Healthcare,Patient Analytics,Patient data and healthcare outcomes analysis,patients;diagnosis;treatment;health records;outcomes
+13,Healthcare,Drug Development,Pharmaceutical research and drug trial data,pharmaceutical;drugs;trials;FDA;clinical research
+14,Healthcare,Healthcare Operations,Hospital and clinic operational metrics,operations;hospital;clinic;efficiency;quality
+15,Environment,Climate Change,Climate data analysis and environmental trends,climate;temperature;emissions;carbon;weather
+16,Environment,Pollution Monitoring,Air and water quality data analysis,pollution;air quality;water quality;emissions;contamination
+17,Environment,Wildlife Conservation,Wildlife population and habitat analysis,wildlife;conservation;species;habitat;biodiversity
+18,Environment,Natural Resources,Natural resource management and usage data,resources;water;minerals;forestry;sustainability
+19,Education,Student Performance,Academic performance and learning analytics,students;grades;learning;assessment;education
+20,Education,Institutional Analytics,School and university operational data,institutions;enrollment;graduation;programs;faculty
+21,Education,Online Learning,E-learning platforms and course analytics,e-learning;MOOC;courses;completion;engagement
+22,Education,Research Output,Academic research and publication metrics,research;publications;citations;journals;grants
+23,Sports,Player Performance,Athlete statistics and performance metrics,athletes;statistics;performance;training;fitness
+24,Sports,Team Analytics,Team performance and strategy analysis,team;strategy;wins;losses;standings
+25,Sports,Fan Engagement,Fan behavior and engagement metrics,fans;engagement;attendance;merchandise;social media
+26,Sports,Event Analytics,Sports event data and audience metrics,events;audience;viewership;tickets;broadcasting
+27,Entertainment,Streaming Analytics,Streaming platform content and viewer data,streaming;viewers;content;subscriptions;watch time
+28,Entertainment,Social Media,Social media trends and engagement analysis,social media;likes;shares;followers;viral
+29,Entertainment,Gaming Analytics,Gaming industry data and player behavior,gaming;players;engagement;monetization;retention
+30,Entertainment,Content Performance,Media content performance metrics,content;views;ratings;reviews;popularity

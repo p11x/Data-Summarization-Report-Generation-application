@@ -1,0 +1,125 @@
+<div class="visualization-upload-page">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="back-btn" (click)="goBack()">
+          ← Back
+        </button>
+        <h1>📊 Upload Dataset for Visualization</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Upload Section -->
+    <section class="upload-section">
+      <div class="upload-card" 
+           [class.dragging]="isDragging"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave($event)"
+           (drop)="onDrop($event)">
+        
+        <div class="upload-icon">📁</div>
+        <h2>Upload Your Dataset</h2>
+        <p>Drag and drop your file here or click to browse</p>
+        
+        <input type="file" 
+               id="fileInput" 
+               accept=".csv,.xlsx,.xls,.json"
+               (change)="onFileSelect($event)"
+               class="file-input">
+        <label for="fileInput" class="browse-btn">Browse Files</label>
+        
+        <div class="supported-formats">
+          <span>Supported formats:</span>
+          <span class="format-badge">CSV</span>
+          <span class="format-badge">Excel</span>
+          <span class="format-badge">JSON</span>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" *ngIf="error">
+          {{ error }}
+        </div>
+      </div>
+
+      <!-- Upload Progress -->
+      <div class="upload-progress" *ngIf="isUploading">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+        </div>
+        <p>Processing dataset... {{ uploadProgress }}%</p>
+      </div>
+
+      <!-- Selected File & Dataset Preview -->
+      <div class="dataset-preview" *ngIf="dataset && !isUploading">
+        <div class="preview-header">
+          <div class="file-info">
+            <span class="file-icon">📊</span>
+            <div class="file-details">
+              <h3>{{ dataset.metadata.filename }}</h3>
+              <span class="file-size">{{ formatFileSize(dataset.metadata.size) }}</span>
+            </div>
+          </div>
+          <button class="remove-btn" (click)="removeFile()">✕</button>
+        </div>
+
+        <!-- Dataset Stats -->
+        <div class="dataset-stats">
+          <div class="stat-item">
+            <span class="stat-value">{{ dataset.metadata.rowCount }}</span>
+            <span class="stat-label">Rows</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ dataset.metadata.columnNames.length }}</span>
+            <span class="stat-label">Columns</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ dataset.data.length }}</span>
+            <span class="stat-label">Records</span>
+          </div>
+        </div>
+
+        <!-- Column Info -->
+        <div class="column-info">
+          <h4>Columns Detected</h4>
+          <div class="column-list">
+            <div class="column-item" *ngFor="let col of dataset.metadata.columnNames">
+              <span class="column-icon">{{ getTypeIcon(dataset.metadata.columnTypes[col]) }}</span>
+              <span class="column-name">{{ col }}</span>
+              <span class="column-type">{{ dataset.metadata.columnTypes[col] }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sample Data -->
+        <div class="sample-data">
+          <h4>Sample Data (First 5 Rows)</h4>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th *ngFor="let col of dataset.metadata.columnNames">{{ col }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of dataset.data.slice(0, 5)">
+                  <td *ngFor="let col of dataset.metadata.columnNames">{{ row[col] }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Continue Button -->
+        <div class="action-buttons">
+          <button class="continue-btn" (click)="continueToDashboard()">
+            Continue to Dashboard →
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

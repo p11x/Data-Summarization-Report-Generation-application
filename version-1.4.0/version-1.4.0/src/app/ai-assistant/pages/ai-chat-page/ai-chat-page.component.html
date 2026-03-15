@@ -1,0 +1,84 @@
+<div class="ai-chat-page">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="back-btn" (click)="goBack()">
+          ← Back
+        </button>
+        <h1>🤖 AI Chat Helper</h1>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" (click)="clearDataset()" *ngIf="dataset">
+          Clear Dataset
+        </button>
+        <button class="btn btn-primary" (click)="goToReport()">
+          View Reports
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="chat-container">
+      <!-- File Upload Section -->
+      <section class="upload-section" *ngIf="showUploadSection">
+        <div class="upload-card">
+          <h2>📤 Upload Your Dataset</h2>
+          <p>Upload a CSV, Excel, or JSON file to start analyzing with AI</p>
+          <app-ai-file-upload (fileSelected)="onFileSelected($event)"></app-ai-file-upload>
+          
+          <div class="supported-formats">
+            <span>Supported formats:</span>
+            <span class="format-badge">CSV</span>
+            <span class="format-badge">Excel</span>
+            <span class="format-badge">JSON</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dataset Info -->
+      <section class="dataset-info" *ngIf="dataset">
+        <div class="dataset-card">
+          <div class="dataset-icon">📊</div>
+          <div class="dataset-details">
+            <h3>{{ dataset.metadata.filename }}</h3>
+            <p>{{ dataset.metadata.rowCount }} rows • {{ dataset.metadata.columnNames.length }} columns</p>
+            <div class="column-tags">
+              <span *ngFor="let col of dataset.metadata.columnNames.slice(0, 5)" class="column-tag">
+                {{ col }}
+              </span>
+              <span *ngIf="dataset.metadata.columnNames.length > 5" class="column-tag more">
+                +{{ dataset.metadata.columnNames.length - 5 }} more
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Chat Window -->
+      <section class="chat-section" *ngIf="dataset">
+        <app-ai-chat-window
+          [messages]="messages"
+          [isProcessing]="isProcessing"
+          [suggestions]="promptSuggestions"
+          (messageSent)="onSendMessage($event)"
+          (suggestionClicked)="onSuggestionClick($event)"
+        ></app-ai-chat-window>
+      </section>
+
+      <!-- Results Section -->
+      <section class="results-section" *ngIf="results.length > 0">
+        <h2>📈 Generated Results</h2>
+        <div class="results-grid">
+          <app-ai-result-card
+            *ngFor="let result of results"
+            [result]="result"
+            (viewDetails)="onResultClick($event)"
+          ></app-ai-result-card>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>

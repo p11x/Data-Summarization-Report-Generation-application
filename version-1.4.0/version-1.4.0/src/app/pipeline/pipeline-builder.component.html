@@ -1,0 +1,265 @@
+<div class="pipeline-container">
+  <!-- Header -->
+  <header class="pipeline-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goToHome()">← Back to Dashboard</button>
+      <div class="header-title">
+        <h1>🔗 Data Pipeline Builder</h1>
+        <p class="subtitle">Drag and drop to reorder pipeline stages • Click to navigate</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="reset-btn" (click)="resetPipeline()">↺ Reset Pipeline</button>
+    </div>
+  </header>
+
+  <!-- No Data State -->
+  <div *ngIf="!hasData" class="no-data-container">
+    <div class="no-data-card">
+      <div class="no-data-icon">📤</div>
+      <h2>No Data Loaded</h2>
+      <p>Upload a CSV file to start building your data pipeline.</p>
+      <button class="upload-btn" (click)="goToUpload()">📁 Upload File</button>
+    </div>
+  </div>
+
+  <!-- Pipeline Visualization -->
+  <div *ngIf="hasData" class="pipeline-content">
+    <!-- Pipeline Flow Diagram -->
+    <div class="pipeline-flow">
+      <div class="pipeline-stages">
+        <div 
+          *ngFor="let stage of pipeline; let i = index" 
+          class="pipeline-stage"
+          [class.completed]="stage.completed"
+          [class.enabled]="stage.enabled"
+          [class.drag-over]="dragOverIndex === i"
+          [class.dragging]="draggedStage?.id === stage.id"
+          draggable="true"
+          (dragstart)="onDragStart($event, stage)"
+          (dragover)="onDragOver($event, i)"
+          (dragleave)="onDragLeave()"
+          (drop)="onDrop($event, i)"
+          (dragend)="onDragEnd()"
+          (click)="goToStage(stage)"
+        >
+          <!-- Stage Icon -->
+          <div class="stage-icon">
+            <span class="stage-number">{{ i + 1 }}</span>
+            <span class="stage-emoji">{{ stage.icon }}</span>
+          </div>
+          
+          <!-- Stage Info -->
+          <div class="stage-info">
+            <h3>{{ stage.name }}</h3>
+            <p>{{ stage.description }}</p>
+          </div>
+          
+          <!-- Completion Badge -->
+          <div class="stage-status" *ngIf="stage.completed">
+            <span class="completed-badge">✓ Completed</span>
+          </div>
+          
+          <!-- Enable/Disable Toggle -->
+          <div class="stage-toggle" (click)="$event.stopPropagation(); toggleStage(stage)">
+            <input 
+              type="checkbox" 
+              [checked]="stage.enabled"
+              (change)="toggleStage(stage)"
+            />
+            <span class="toggle-label">{{ stage.enabled ? 'Active' : 'Disabled' }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Connection Lines (visual representation) -->
+      <div class="pipeline-connections">
+        <div 
+          *ngFor="let conn of connections; let i = index" 
+          class="connection-line"
+        >
+          <div class="connection-arrow">→</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions Panel -->
+    <div class="quick-actions">
+      <h3>⚡ Quick Actions</h3>
+      
+      <div class="action-grid">
+        <div class="action-card" (click)="goToUpload()">
+          <span class="action-icon">📤</span>
+          <span class="action-label">Upload File</span>
+        </div>
+        
+        <div class="action-card" (click)="openCleanModal()">
+          <span class="action-icon">🧹</span>
+          <span class="action-label">Clean Data</span>
+          <span class="action-badge" *ngIf="totalDuplicates > 0 || totalEmptyRows > 0">
+            {{ totalDuplicates + totalEmptyRows }} issues
+          </span>
+        </div>
+        
+        <div class="action-card" (click)="router.navigate(['/data-filter'])">
+          <span class="action-icon">🔍</span>
+          <span class="action-label">Filter Data</span>
+        </div>
+        
+        <div class="action-card" (click)="router.navigate(['/report'])">
+          <span class="action-icon">📊</span>
+          <span class="action-label">Generate Report</span>
+        </div>
+      </div>
+      
+      <!-- Data Stats -->
+      <div class="data-stats">
+        <h4>📈 Current Data Stats</h4>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-value">{{ originalData.length | number }}</span>
+            <span class="stat-label">Total Rows</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ columns.length }}</span>
+            <span class="stat-label">Columns</span>
+          </div>
+          <div class="stat-item warning" *ngIf="totalDuplicates > 0">
+            <span class="stat-value">{{ totalDuplicates }}</span>
+            <span class="stat-label">Duplicates</span>
+          </div>
+          <div class="stat-item warning" *ngIf="totalEmptyRows > 0">
+            <span class="stat-value">{{ totalEmptyRows }}</span>
+            <span class="stat-label">Empty Rows</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Cleaning Modal -->
+  <div *ngIf="showCleanModal" class="modal-overlay" (click)="closeCleanModal()">
+    <div class="modal-container large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>🧹 Data Cleaning</h2>
+        <button class="modal-close" (click)="closeCleanModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- Cleaning Options -->
+        <div class="cleaning-options">
+          <!-- Remove Duplicates -->
+          <div class="option-card">
+            <div class="option-header">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [(ngModel)]="cleaningOptions.removeDuplicates"
+                />
+                <span class="option-icon">👥</span>
+                <span class="option-title">Remove Duplicate Rows</span>
+              </label>
+              <span class="option-count" *ngIf="totalDuplicates > 0">
+                {{ totalDuplicates }} found
+              </span>
+            </div>
+            <p class="option-description">
+              Removes identical rows from the dataset. Useful when you have repeated records.
+            </p>
+          </div>
+
+          <!-- Remove Empty Rows -->
+          <div class="option-card">
+            <div class="option-header">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [(ngModel)]="cleaningOptions.removeEmptyRows"
+                />
+                <span class="option-icon">⬜</span>
+                <span class="option-title">Remove Empty Rows</span>
+              </label>
+              <span class="option-count" *ngIf="totalEmptyRows > 0">
+                {{ totalEmptyRows }} found
+              </span>
+            </div>
+            <p class="option-description">
+              Removes rows that have no data (all cells are empty or null).
+            </p>
+          </div>
+
+          <!-- Remove Columns -->
+          <div class="option-card">
+            <div class="option-header">
+              <span class="option-icon">🗑️</span>
+              <span class="option-title">Remove Columns</span>
+              <span class="option-count">
+                {{ cleaningOptions.removeColumns.length }} selected
+              </span>
+            </div>
+            <p class="option-description">
+              Select columns to remove from the dataset.
+            </p>
+            
+            <div class="column-selector">
+              <div class="column-actions">
+                <button class="select-btn" (click)="selectAllColumns()">Select All</button>
+                <button class="select-btn" (click)="deselectAllColumns()">Deselect All</button>
+              </div>
+              <div class="column-list">
+                <label 
+                  *ngFor="let col of columns" 
+                  class="column-checkbox"
+                  [class.selected]="isColumnSelected(col)"
+                >
+                  <input 
+                    type="checkbox" 
+                    [checked]="isColumnSelected(col)"
+                    (change)="toggleColumnRemoval(col)"
+                  />
+                  <span>{{ col }}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview Stats -->
+        <div class="preview-stats" *ngIf="cleaningStats">
+          <h4>📊 Cleaning Preview</h4>
+          <div class="stats-comparison">
+            <div class="stat-box before">
+              <span class="stat-label">Before</span>
+              <span class="stat-value">{{ cleaningStats.originalRows }} rows</span>
+              <span class="stat-sub">{{ cleaningStats.originalColumns }} columns</span>
+            </div>
+            <div class="stat-arrow">→</div>
+            <div class="stat-box after">
+              <span class="stat-label">After</span>
+              <span class="stat-value">{{ cleaningStats.finalRows }} rows</span>
+              <span class="stat-sub">{{ cleaningStats.finalColumns }} columns</span>
+            </div>
+          </div>
+          <div class="changes-list">
+            <span *ngIf="cleaningStats.duplicatesRemoved > 0" class="change-tag removed">
+              -{{ cleaningStats.duplicatesRemoved }} duplicates
+            </span>
+            <span *ngIf="cleaningStats.emptyRowsRemoved > 0" class="change-tag removed">
+              -{{ cleaningStats.emptyRowsRemoved }} empty rows
+            </span>
+            <span *ngIf="cleaningStats.columnsRemoved > 0" class="change-tag removed">
+              -{{ cleaningStats.columnsRemoved }} columns
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="skip-btn" (click)="skipCleaningAndContinue()">
+          Skip Cleaning →
+        </button>
+        <button class="apply-btn" (click)="applyCleaning()" [disabled]="isCleaning">
+          {{ isCleaning ? 'Applying...' : '✓ Apply Cleaning' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
