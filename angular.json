@@ -34,6 +34,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "/assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "public",
+                "output": "/"
               }
             ],
             "styles": [
@@ -44,10 +49,8 @@
             "security": {
               "allowedHosts": []
             },
-            "prerender": true,
-            "ssr": {
-              "entry": "src/server.ts"
-            }
+            "prerender": false,
+            "ssr": false
           },
           "configurations": {
             "production": {
@@ -76,10 +79,7 @@
               },
               "sourceMap": false,
               "namedChunks": false,
-              "serviceWorker": "ngsw-config.json",
-              "images": {
-                "optimize": true
-              }
+              "serviceWorker": "ngsw-config.json"
             },
             "development": {
               "optimization": false,
@@ -103,5 +103,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "0366e670-2ac8-4a27-be25-b02274e4a04f"
   }
 }

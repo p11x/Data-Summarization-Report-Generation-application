@@ -21,15 +21,28 @@ export class AuthService {
   private currentUserSubject: BehaviorSubject<any>;
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'currentUser';
+  
+  // Store redirect URL for after login
+  redirectUrl: string | null = null;
 
   constructor(private router: Router) {
     this.currentUserSubject = new BehaviorSubject<any>(this.getStoredUser());
   }
 
   /**
+   * Check if we're running in browser (not SSR)
+   */
+  private isBrowser(): boolean {
+    return typeof window !== 'undefined' && !!window.localStorage;
+  }
+
+  /**
    * Get user from storage on service initialization
    */
   private getStoredUser(): any {
+    if (!this.isBrowser()) {
+      return null;
+    }
     try {
       const user = localStorage.getItem(this.USER_KEY);
       return user ? JSON.parse(user) : null;
@@ -145,8 +158,10 @@ export class AuthService {
    * Logout current user
    */
   logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.USER_KEY);
+    if (this.isBrowser()) {
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem(this.USER_KEY);
+    }
     this.currentUserSubject.next(null);
     this.router.navigate(['/auth']);
   }
@@ -162,6 +177,11 @@ export class AuthService {
    * Check if user is currently logged in
    */
   isLoggedIn(): boolean {
+    // Handle SSR - localStorage is not available on server
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return false;
+    }
+    
     const token = localStorage.getItem(this.TOKEN_KEY);
     if (!token) return false;
 
@@ -179,6 +199,9 @@ export class AuthService {
    * Get current authentication token
    */
   getToken(): string | null {
+    if (!this.isBrowser()) {
+      return null;
+    }
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
@@ -186,6 +209,9 @@ export class AuthService {
    * Store authentication data
    */
   private storeAuthData(data: { username: string; token: string; expiresAt: number }): void {
+    if (!this.isBrowser()) {
+      return;
+    }
     localStorage.setItem(this.TOKEN_KEY, data.token);
     localStorage.setItem(this.USER_KEY, JSON.stringify({ 
       username: data.username,
@@ -197,6 +223,9 @@ export class AuthService {
    * Get stored users (for mock implementation)
    */
   private getStoredUsers(): any[] {
+    if (!this.isBrowser()) {
+      return [];
+    }
     try {
       return JSON.parse(localStorage.getItem('registeredUsers') || '[]');
     } catch {
@@ -208,6 +237,9 @@ export class AuthService {
    * Store users (for mock implementation)
    */
   private storeUsers(users: any[]): void {
+    if (!this.isBrowser()) {
+      return;
+    }
     localStorage.setItem('registeredUsers', JSON.stringify(users));
   }
 

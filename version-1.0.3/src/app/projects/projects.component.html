@@ -1,0 +1,156 @@
+<div class="projects-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()">← Back</button>
+      <div class="header-title">
+        <h1>📁 My Projects</h1>
+        <p class="subtitle">Manage your workspaces and projects</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="action-btn" (click)="openCreateWorkspaceModal()">➕ New Workspace</button>
+      <button class="action-btn primary" (click)="openCreateProjectModal()">➕ New Project</button>
+    </div>
+  </header>
+
+  <!-- Workspaces Section -->
+  <section class="workspaces-section">
+    <h2>Workspaces</h2>
+    <div class="workspaces-grid" *ngIf="workspaces.length > 0">
+      <div class="workspace-card" *ngFor="let workspace of workspaces">
+        <div class="workspace-icon">📂</div>
+        <div class="workspace-info">
+          <h3>{{ workspace.name }}</h3>
+          <p>{{ workspace.description || 'No description' }}</p>
+          <span class="project-count">{{ workspace.projectCount }} projects</span>
+        </div>
+        <button class="filter-btn" (click)="filterWorkspace = workspace.id" [class.active]="filterWorkspace === workspace.id">
+          Filter
+        </button>
+      </div>
+    </div>
+    <div class="empty-state" *ngIf="workspaces.length === 0">
+      <div class="empty-icon">📂</div>
+      <h3>No Workspaces Yet</h3>
+      <p>Create a workspace to organize your projects</p>
+      <button class="action-btn primary" (click)="openCreateWorkspaceModal()">Create Workspace</button>
+    </div>
+    
+    <button class="clear-filter-btn" *ngIf="filterWorkspace" (click)="filterWorkspace = ''">
+      Clear Filter
+    </button>
+  </section>
+
+  <!-- Projects Section -->
+  <section class="projects-section">
+    <h2>Projects {{ filterWorkspace ? 'in ' + getWorkspaceName(filterWorkspace) : '' }}</h2>
+    
+    <div class="projects-grid" *ngIf="filteredProjects.length > 0">
+      <div class="project-card" *ngFor="let project of filteredProjects">
+        <div class="project-header">
+          <div class="project-icon">📊</div>
+          <span class="status-badge" [ngClass]="getStatusClass(project.status)">
+            {{ project.status }}
+          </span>
+        </div>
+        
+        <div class="project-body">
+          <h3>{{ project.name }}</h3>
+          <p>{{ project.description || 'No description' }}</p>
+          
+          <div class="project-meta">
+            <span class="meta-item">
+              <span class="meta-icon">📂</span>
+              {{ getWorkspaceName(project.workspaceId) }}
+            </span>
+            <span class="meta-item">
+              <span class="meta-icon">📅</span>
+              {{ formatDate(project.updatedAt) }}
+            </span>
+          </div>
+          
+          <div class="project-stats">
+            <span class="stat">
+              <span class="stat-icon">📄</span>
+              {{ project.dataSources.length }} data sources
+            </span>
+            <span class="stat">
+              <span class="stat-icon">⚙️</span>
+              {{ project.filterOperations.length }} operations
+            </span>
+          </div>
+        </div>
+        
+        <div class="project-actions">
+          <button class="project-btn open" (click)="openProject(project)">
+            Open
+          </button>
+          <button class="project-btn rerun" (click)="reRunAnalysis(project)" *ngIf="project.filteredData">
+            Re-run
+          </button>
+          <button class="project-btn delete" (click)="deleteProject(project)">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="empty-state" *ngIf="filteredProjects.length === 0">
+      <div class="empty-icon">📁</div>
+      <h3>No Projects Yet</h3>
+      <p *ngIf="!filterWorkspace">Create your first project to get started</p>
+      <p *ngIf="filterWorkspace">No projects in this workspace</p>
+      <button class="action-btn primary" (click)="openCreateProjectModal()">Create Project</button>
+    </div>
+  </section>
+
+  <!-- Create Workspace Modal -->
+  <div class="modal-overlay" *ngIf="showCreateWorkspaceModal" (click)="closeCreateWorkspaceModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Create Workspace</h2>
+        <button class="close-btn" (click)="closeCreateWorkspaceModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Workspace Name</label>
+          <input type="text" [(ngModel)]="newWorkspaceName" placeholder="Enter workspace name">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="newWorkspaceDescription" placeholder="Enter description (optional)"></textarea>
+        </div>
+        <button class="submit-btn" (click)="createWorkspace()">Create Workspace</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Project Modal -->
+  <div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateProjectModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Create Project</h2>
+        <button class="close-btn" (click)="closeCreateProjectModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Project Name</label>
+          <input type="text" [(ngModel)]="newProjectName" placeholder="Enter project name">
+        </div>
+        <div class="form-group">
+          <label>Workspace</label>
+          <select [(ngModel)]="selectedWorkspaceId">
+            <option value="">Select workspace</option>
+            <option *ngFor="let ws of workspaces" [value]="ws.id">{{ ws.name }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="newProjectDescription" placeholder="Enter description (optional)"></textarea>
+        </div>
+        <button class="submit-btn" (click)="createProject()">Create Project</button>
+      </div>
+    </div>
+  </div>
+</div>

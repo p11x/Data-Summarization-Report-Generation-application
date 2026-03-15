@@ -27,7 +27,6 @@ import {
 import { GlobalErrorHandler } from './services/global-error-handler.service';
 import { httpErrorInterceptor, jwtInterceptor } from './services/http-interceptors';
 import { provideServiceWorker } from '@angular/service-worker';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 
 // Register only the components we need
 Chart.register(
@@ -57,7 +56,6 @@ export const appConfig: ApplicationConfig = {
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000'
-    }),
-    provideClientHydration(withEventReplay())
+    })
   ]
 };

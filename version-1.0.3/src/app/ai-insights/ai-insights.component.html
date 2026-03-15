@@ -1,0 +1,59 @@
+<div class="ai-insights-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <button class="back-btn" (click)="goToDashboard()">← Back to Dashboard</button>
+      <h1>🚀 AI Insights</h1>
+      <p class="subtitle">Powerful AI-powered analytics and machine learning features</p>
+    </div>
+    <div class="header-actions">
+      <button class="primary-btn" (click)="goToReport()">
+        <span>📊</span> Try AI Insights
+      </button>
+    </div>
+  </header>
+
+  <!-- Available Insights -->
+  <div class="content-section">
+    <h2>✨ Available Features</h2>
+    <div class="insights-grid">
+      <div *ngFor="let insight of getAvailableInsights()" class="insight-card">
+        <div class="insight-icon">{{ insight.icon }}</div>
+        <div class="insight-info">
+          <span class="category-badge">{{ insight.category }}</span>
+          <h3>{{ insight.name }}</h3>
+          <p>{{ insight.description }}</p>
+        </div>
+        <div class="insight-features">
+          <h4>Key Features:</h4>
+          <ul>
+            <li *ngFor="let feature of insight.features">{{ feature }}</li>
+          </ul>
+        </div>
+        <button class="action-btn" (click)="goToReport()">Try Now →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coming Soon -->
+  <div class="content-section coming-soon">
+    <h2>🚀 Coming Soon</h2>
+    <div class="insights-grid">
+      <div *ngFor="let insight of getComingSoonInsights()" class="insight-card disabled">
+        <div class="insight-icon">{{ insight.icon }}</div>
+        <div class="insight-info">
+          <span class="category-badge">{{ insight.category }}</span>
+          <h3>{{ insight.name }}</h3>
+          <p>{{ insight.description }}</p>
+        </div>
+        <div class="insight-features">
+          <h4>Upcoming Features:</h4>
+          <ul>
+            <li *ngFor="let feature of insight.features">{{ feature }}</li>
+          </ul>
+        </div>
+        <button class="action-btn disabled" disabled>Coming Soon</button>
+      </div>
+    </div>
+  </div>
+</div>

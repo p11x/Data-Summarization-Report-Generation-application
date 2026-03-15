@@ -1,0 +1,100 @@
+<div class="ai-report-page">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="back-btn" (click)="goBack()">
+          ← Back
+        </button>
+        <h1>📥 AI Report Generator</h1>
+      </div>
+      <div class="header-info" *ngIf="datasetInfo">
+        <span class="dataset-label">Dataset:</span>
+        <span class="dataset-name">{{ datasetInfo.filename }}</span>
+        <span class="dataset-stats">{{ datasetInfo.rowCount }} rows • {{ datasetInfo.columnNames.length }} columns</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- No Results State -->
+    <div class="empty-state" *ngIf="results.length === 0">
+      <div class="empty-icon">📊</div>
+      <h2>No Analysis Results Yet</h2>
+      <p>Go to AI Chat to analyze your data and generate results.</p>
+      <button class="btn btn-primary" (click)="goBack()">
+        Go to AI Chat
+      </button>
+    </div>
+
+    <!-- Results Library -->
+    <div class="results-library" *ngIf="results.length > 0">
+      <!-- Selection Controls -->
+      <div class="selection-controls">
+        <div class="selection-info">
+          <span>{{ selectedResults.length }} of {{ results.length }} selected</span>
+        </div>
+        <div class="selection-actions">
+          <button class="btn btn-small" (click)="selectAll()">Select All</button>
+          <button class="btn btn-small" (click)="deselectAll()">Deselect All</button>
+        </div>
+      </div>
+
+      <!-- Results Grid -->
+      <div class="results-grid">
+        <div 
+          *ngFor="let result of results" 
+          class="result-card"
+          [class.selected]="isSelected(result.id)"
+          (click)="toggleSelection(result.id)"
+        >
+          <div class="checkbox">
+            <span *ngIf="isSelected(result.id)">✓</span>
+          </div>
+          <div class="result-icon">{{ getResultTypeIcon(result.type) }}</div>
+          <div class="result-info">
+            <h4>{{ result.title }}</h4>
+            <p class="result-type">{{ result.type }}</p>
+            <span class="result-date">{{ formatDate(result.timestamp) }}</span>
+          </div>
+          <div class="result-preview">
+            {{ result.content.substring(0, 100) }}...
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Options -->
+      <div class="export-section">
+        <h3>Export Options</h3>
+        
+        <div class="format-selector">
+          <label class="format-option" [class.active]="exportFormat === 'pdf'">
+            <input type="radio" name="format" value="pdf" [(ngModel)]="exportFormat">
+            <span class="format-icon">📄</span>
+            <span class="format-label">PDF</span>
+          </label>
+          <label class="format-option" [class.active]="exportFormat === 'csv'">
+            <input type="radio" name="format" value="csv" [(ngModel)]="exportFormat">
+            <span class="format-icon">📊</span>
+            <span class="format-label">CSV</span>
+          </label>
+          <label class="format-option" [class.active]="exportFormat === 'excel'">
+            <input type="radio" name="format" value="excel" [(ngModel)]="exportFormat">
+            <span class="format-icon">📗</span>
+            <span class="format-label">Excel</span>
+          </label>
+        </div>
+
+        <button 
+          class="btn btn-generate" 
+          (click)="generateReport()"
+          [disabled]="selectedResults.length === 0 || isGenerating"
+        >
+          <span *ngIf="!isGenerating">Generate Report</span>
+          <span *ngIf="isGenerating">Generating...</span>
+        </button>
+      </div>
+    </div>
+  </main>
+</div>

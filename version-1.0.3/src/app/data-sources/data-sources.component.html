@@ -1,0 +1,105 @@
+<div class="data-sources-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <button class="back-btn" (click)="goToDashboard()">← Back to Dashboard</button>
+      <h1>📊 Data Sources</h1>
+      <p class="subtitle">Manage your uploaded data files and external data connections</p>
+    </div>
+    <div class="header-actions">
+      <button class="primary-btn" (click)="goToUpload()">
+        <span>➕</span> Add Data Source
+      </button>
+    </div>
+  </header>
+
+  <!-- Stats Overview -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <span class="stat-icon">📁</span>
+      <div class="stat-info">
+        <span class="stat-value">{{ dataSources.length }}</span>
+        <span class="stat-label">Total Sources</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">📊</span>
+      <div class="stat-info">
+        <span class="stat-value">{{ getTotalRecords() | number }}</span>
+        <span class="stat-label">Total Records</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">💾</span>
+      <div class="stat-info">
+        <span class="stat-value">{{ formatSize(getTotalSize()) }}</span>
+        <span class="stat-label">Total Size</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Sources List -->
+  <div class="content-section">
+    <div class="section-header">
+      <h2>Your Data Sources</h2>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="dataSources.length === 0 && !isLoading" class="empty-state">
+      <div class="empty-icon">📂</div>
+      <h3>No Data Sources Yet</h3>
+      <p>Upload your first data file to get started with analysis</p>
+      <button class="primary-btn" (click)="goToUpload()">
+        <span>📤</span> Upload Data
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading data sources...</p>
+    </div>
+
+    <!-- Data Sources Grid -->
+    <div *ngIf="dataSources.length > 0" class="sources-grid">
+      <div 
+        *ngFor="let source of dataSources" 
+        class="source-card"
+        (click)="loadDataSource(source)"
+      >
+        <div class="source-icon">
+          <span>{{ getTypeIcon(source.type) }}</span>
+        </div>
+        <div class="source-info">
+          <h3>{{ source.name }}</h3>
+          <div class="source-meta">
+            <span class="meta-item">
+              <span class="meta-icon">📅</span>
+              {{ formatDate(source.uploadedAt) }}
+            </span>
+            <span class="meta-item">
+              <span class="meta-icon">💾</span>
+              {{ formatSize(source.size) }}
+            </span>
+            <span class="meta-item" *ngIf="source.records > 0">
+              <span class="meta-icon">📊</span>
+              {{ source.records | number }} records
+            </span>
+          </div>
+          <div class="source-tags">
+            <span class="tag" [class]="source.type.toLowerCase()">{{ source.type }}</span>
+            <span class="tag status" [class]="source.status">{{ source.status }}</span>
+          </div>
+        </div>
+        <div class="source-actions">
+          <button class="icon-btn" title="Load Data" (click)="loadDataSource(source); $event.stopPropagation()">
+            📂
+          </button>
+          <button class="icon-btn danger" title="Remove" (click)="deleteDataSource(source, $event)">
+            🗑️
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

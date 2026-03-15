@@ -15,6 +15,7 @@ import {
 import { ChartConfigService, DrillDownData } from '../services/chart-config.service';
 import { ReportVersionService } from '../services/report-version.service';
 import { AdvancedAnalyticsService } from '../services/advanced-analytics.service';
+import { DatasetStorageService, StoredDataset } from '../services/dataset-storage.service';
 
 @Component({
   selector: 'app-report',
@@ -125,7 +126,8 @@ export class ReportComponent implements OnInit {
     private dataAnalysisService: DataAnalysisService,
     private chartConfigService: ChartConfigService,
     private versionService: ReportVersionService,
-    private analyticsService: AdvancedAnalyticsService
+    private analyticsService: AdvancedAnalyticsService,
+    private datasetStorage: DatasetStorageService
   ) {}
 
   ngOnInit() {
@@ -351,12 +353,30 @@ export class ReportComponent implements OnInit {
   }
 
   loadData() {
+    // First try to get data from DataAnalysisService (upload flow)
     this.fileData = this.dataAnalysisService.getFileData();
     this.dataSummary = this.dataAnalysisService.getDataSummary();
     this.columnAnalysis = this.dataAnalysisService.getColumnAnalysis();
     this.keyInsights = this.dataAnalysisService.getKeyInsights();
     this.reportConfig = this.dataAnalysisService.getReportConfig();
     this.sampleData = this.dataAnalysisService.getSampleData(10);
+
+    // If no data from DataAnalysisService, try DatasetStorageService (search flow)
+    if (!this.fileData || this.columnAnalysis.length === 0) {
+      const storedDataset = this.datasetStorage.getDataset();
+      if (storedDataset) {
+        console.log('[Report] Loading data from storage:', storedDataset.name);
+        this.fileData = this.datasetStorage.getFileData();
+        this.dataSummary = this.datasetStorage.getDataSummary();
+        this.columnAnalysis = this.datasetStorage.getColumnAnalysis();
+        this.keyInsights = this.datasetStorage.getKeyInsights();
+        this.reportConfig = this.datasetStorage.getReportConfig();
+        
+        if (this.fileData) {
+          this.sampleData = this.fileData.parsedData.slice(0, 10);
+        }
+      }
+    }
 
     console.log('File Data:', this.fileData);
     console.log('Column Analysis:', this.columnAnalysis);

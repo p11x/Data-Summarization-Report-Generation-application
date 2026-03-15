@@ -30,6 +30,8 @@ const fs = require('fs');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const crypto = require('crypto');
+const https = require('https');
+const http = require('http');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -345,6 +347,91 @@ function initializeDatabase() {
     insertDefaultWidgets();
 
     console.log('Database schema initialized');
+  });
+}
+
+// ============================================================
+// DATASET INDEX FOR DISCOVERY ENGINE
+// ============================================================
+
+function initializeDatasetIndex() {
+  db.serialize(() => {
+    // Dataset discovery index table
+    db.run(`CREATE TABLE IF NOT EXISTS dataset_index (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      description TEXT,
+      file_type TEXT,
+      dataset_url TEXT NOT NULL,
+      repository_url TEXT,
+      repository TEXT,
+      owner TEXT,
+      last_updated TEXT,
+      size_bytes INTEGER,
+      size_display TEXT,
+      topic_tags TEXT,
+      popularity INTEGER DEFAULT 0,
+      is_validated INTEGER DEFAULT 0,
+      validation_error TEXT,
+      discovered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    // Create indexes for fast searching
+    db.run(`CREATE INDEX IF NOT EXISTS idx_dataset_name ON dataset_index(name)`);
+    db.run(`CREATE INDEX IF NOT EXISTS idx_dataset_provider ON dataset_index(provider)`);
+    db.run(`CREATE INDEX IF NOT EXISTS idx_dataset_file_type ON dataset_index(file_type)`);
+    db.run(`CREATE INDEX IF NOT EXISTS idx_dataset_popularity ON dataset_index(popularity DESC)`);
+
+    console.log('Dataset index table initialized');
+  });
+}
+
+// Initialize dataset index
+initializeDatasetIndex();
+
+// Seed fallback datasets if index is empty
+seedFallbackDatasets();
+
+function seedFallbackDatasets() {
+  db.get('SELECT COUNT(*) as count FROM dataset_index', (err, row) => {
+    if (err || row.count > 0) return;
+    
+  console.log('[DatasetDiscovery] Seeding fallback datasets...');
+  
+  const fallbackDatasets = [
+    // COVID-19 datasets
+    { name: 'covid-19-cases', provider: 'github', description: 'COVID-19 confirmed cases by country', file_type: 'csv', dataset_url: 'https://raw.githubusercontent.com/datasets/covid-19/master/data/time-series-19-covid-combined.csv', repository_url: 'https://github.com/datasets/covid-19', repository: 'covid-19', owner: 'datasets', topic_tags: JSON.stringify(['covid', 'health', 'pandemic']) },
+    { name: 'covid-19-us-states', provider: 'github', description: 'COVID-19 cases by US state', file_type: 'csv', dataset_url: 'https://raw.githubusercontent.com/datasets/covid-19/master/data/us_states_covid19_daily.csv', repository_url: 'https://github.com/datasets/covid-19', repository: 'covid-19', owner: 'datasets', topic_tags: JSON.stringify(['covid', 'health', 'usa']) },
+    // Titanic dataset
+    { name: 'titanic-survival', provider: 'github', description: 'Titanic passenger survival data', file_type: 'csv', dataset_url: 'https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv', repository_url: 'https://github.com/datasciencedojo/datasets', repository: 'datasets', owner: 'datasciencedojo', topic_tags: JSON.stringify(['titanic', 'machine learning', 'classification']) },
+    // Iris dataset
+    { name: 'iris-flowers', provider: 'github', description: 'Iris flower dataset for classification', file_type: 'csv', dataset_url: 'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv', repository_url: 'https://github.com/mwaskom/seaborn-data', repository: 'seaborn-data', owner: 'mwaskom', topic_tags: JSON.stringify(['iris', 'machine learning', 'classification']) },
+    // Sales data
+    { name: 'sales-data', provider: 'github', description: 'Retail sales data', file_type: 'csv', dataset_url: 'https://raw.githubusercontent.com/ryankor/60db/master/Sales_Data/Sales_April_2019.csv', repository_url: 'https://github.com/ryankor/60db', repository: '60db', owner: 'ryankor', topic_tags: JSON.stringify(['sales', 'retail', 'e-commerce']) },
+    // Finance data
+    { name: 'stock-prices', provider: 'github', description: 'Historical stock prices', file_type: 'csv', dataset_url: 'https://raw.githubusercontent.com/plotly/datasets/master/finance-charts-apple.csv', repository_url: 'https://github.com/plotly/datasets', repository: 'datasets', owner: 'plotly', topic_tags: JSON.stringify(['stocks', 'finance', 'apple']) },
+    // Weather data
+    { name: 'weather-history', provider: 'github', description: 'Historical weather data', file_type: 'csv', dataset_url: 'https://raw.githubusercontent.com/datasets/weather/master/data/weather.csv', repository_url: 'https://github.com/datasets/weather', repository: 'weather', owner: 'datasets', topic_tags: JSON.stringify(['weather', 'climate', 'meteorology']) },
+    // Population data
+    { name: 'world-population', provider: 'github', description: 'World population by country', file_type: 'csv', dataset_url: 'https://raw.githubusercontent.com/datasets/population/master/data/population.csv', repository_url: 'https://github.com/datasets/population', repository: 'population', owner: 'datasets', topic_tags: JSON.stringify(['population', 'demographics', 'world']) },
+    // Housing data
+    { name: 'housing-prices', provider: 'github', description: 'California housing prices', file_type: 'csv', dataset_url: 'https://raw.githubusercontent.com/ageron/handson-ml/master/datasets/housing/housing.csv', repository_url: 'https://github.com/ageron/handson-ml', repository: 'handson-ml', owner: 'ageron', topic_tags: JSON.stringify(['housing', 'real estate', 'california']) },
+    // Diamond dataset
+    { name: 'diamond-prices', provider: 'github', description: 'Diamond prices dataset', file_type: 'csv', dataset_url: 'https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv', repository_url: 'https://github.com/tidyverse/ggplot2', repository: 'ggplot2', owner: 'tidyverse', topic_tags: JSON.stringify(['diamonds', 'pricing', 'statistics']) }
+  ];
+  
+  const insertStmt = db.prepare(`INSERT INTO dataset_index 
+    (name, provider, description, file_type, dataset_url, repository_url, repository, owner, topic_tags, is_validated, size_bytes) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`);
+  
+  fallbackDatasets.forEach(d => {
+    insertStmt.run([d.name, d.provider, d.description, d.file_type, d.dataset_url, d.repository_url, d.repository, d.owner, d.topic_tags, Math.floor(Math.random() * 1000000)]);
+  });
+  insertStmt.finalize();
+  
+  console.log(`[DatasetDiscovery] Seeded ${fallbackDatasets.length} fallback datasets`);
   });
 }
 
@@ -1807,6 +1894,520 @@ app.post('/api/reports', authenticateToken, (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// ============================================================
+// DATASET DISCOVERY ENGINE API
+// ============================================================
+
+/**
+ * Search datasets from the index
+ * GET /api/dataset-discovery/search?q=climate&page=1&limit=20
+ */
+app.get('/api/dataset-discovery/search', (req, res) => {
+  const { q = '', page = 1, limit = 20, provider, fileType, sortBy = 'relevance' } = req.query;
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+  const offset = (pageNum - 1) * limitNum;
+
+  let whereClause = 'WHERE 1=1';
+  const params = [];
+
+  // Search query
+  if (q) {
+    whereClause += ' AND (name LIKE ? OR description LIKE ? OR topic_tags LIKE ?)';
+    const searchTerm = `%${q}%`;
+    params.push(searchTerm, searchTerm, searchTerm);
+  }
+
+  // Filter by provider
+  if (provider) {
+    whereClause += ' AND provider = ?';
+    params.push(provider);
+  }
+
+  // Filter by file type
+  if (fileType) {
+    whereClause += ' AND file_type = ?';
+    params.push(fileType);
+  }
+
+  // Sorting
+  let orderBy = 'discovered_at DESC';
+  if (sortBy === 'popularity') {
+    orderBy = 'popularity DESC';
+  } else if (sortBy === 'name') {
+    orderBy = 'name ASC';
+  } else if (sortBy === 'updated') {
+    orderBy = 'last_updated DESC';
+  }
+
+  // Get total count
+  const countSql = `SELECT COUNT(*) as total FROM dataset_index ${whereClause}`;
+  db.get(countSql, params, (err, countResult) => {
+    if (err) {
+      console.error('Count error:', err);
+      return res.status(500).json({ success: false, message: 'Database error', error: err.message });
+    }
+
+    // If no results, return empty success response (not an error)
+    if (countResult.total === 0) {
+      return res.json({
+        success: true,
+        datasets: [],
+        total: 0,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: 0,
+          totalPages: 0
+        }
+      });
+    }
+
+    // Get paginated results
+    const dataSql = `SELECT * FROM dataset_index ${whereClause} ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
+    const dataParams = [...params, limitNum, offset];
+
+    db.all(dataSql, dataParams, (err, rows) => {
+      if (err) {
+        console.error('Data error:', err);
+        return res.status(500).json({ success: false, message: 'Database error', error: err.message });
+      }
+
+      // Parse JSON tags
+      rows = rows.map(row => ({
+        ...row,
+        topic_tags: row.topic_tags ? JSON.parse(row.topic_tags) : []
+      }));
+
+      res.json({
+        success: true,
+        datasets: rows,
+        total: countResult.total,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: countResult.total,
+          totalPages: Math.ceil(countResult.total / limitNum)
+        }
+      });
+    });
+  });
+});
+
+/**
+ * Get dataset by ID
+ * GET /api/dataset-discovery/:id
+ */
+app.get('/api/dataset-discovery/:id', (req, res) => {
+  const { id } = req.params;
+
+  db.get('SELECT * FROM dataset_index WHERE id = ?', [id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Dataset not found' });
+
+    row.topic_tags = row.topic_tags ? JSON.parse(row.topic_tags) : [];
+    
+    // Increment popularity
+    db.run('UPDATE dataset_index SET popularity = popularity + 1 WHERE id = ?', [id]);
+
+    res.json(row);
+  });
+});
+
+/**
+ * Get discovery statistics
+ * GET /api/dataset-discovery/stats
+ */
+app.get('/api/dataset-discovery/stats', (req, res) => {
+  db.get('SELECT COUNT(*) as total FROM dataset_index', (err, totalRow) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    db.get('SELECT COUNT(*) as validated FROM dataset_index WHERE is_validated = 1', (err, validatedRow) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      db.all('SELECT provider, COUNT(*) as count FROM dataset_index GROUP BY provider', (err, providerCounts) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        db.all('SELECT file_type, COUNT(*) as count FROM dataset_index GROUP BY file_type', (err, fileTypeCounts) => {
+          if (err) return res.status(500).json({ error: err.message });
+
+          res.json({
+            totalDatasets: totalRow.total,
+            validatedDatasets: validatedRow.validated,
+            byProvider: providerCounts,
+            byFileType: fileTypeCounts
+          });
+        });
+      });
+    });
+  });
+});
+
+/**
+ * Trigger dataset discovery from GitHub
+ * POST /api/dataset-discovery/crawl
+ */
+app.post('/api/dataset-discovery/crawl', (req, res) => {
+  const { query, maxResults = 100, fileTypes = ['csv', 'json', 'tsv', 'xlsx'] } = req.body;
+
+  console.log(`[DatasetDiscovery] Starting crawl for query: ${query}, maxResults: ${maxResults}`);
+
+  const discoveredDatasets = [];
+
+  // GitHub API search for each file type
+  const searchPromises = fileTypes.map(fileType => {
+    return new Promise((resolve) => {
+      const searchQuery = encodeURIComponent(`${query} extension:${fileType}`);
+      const githubApiUrl = `https://api.github.com/search/code?q=${searchQuery}&per_page=${Math.min(maxResults, 100)}`;
+
+      const options = {
+        headers: {
+          'User-Agent': 'DatasetDiscoveryEngine/1.0',
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      };
+
+      https.get(githubApiUrl, options, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(data);
+            if (json.items) {
+              resolve(json.items.map(item => ({
+                name: item.name.replace(/\.[^/.]+$/, ''),
+                provider: 'github',
+                description: item.name,
+                file_type: fileType,
+                dataset_url: item.html_url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/'),
+                repository_url: item.repository.html_url,
+                repository: item.repository.name,
+                owner: item.repository.owner.login,
+                last_updated: item.repository.updated_at,
+                topic_tags: JSON.stringify([query, fileType])
+              })));
+            } else {
+              resolve([]);
+            }
+          } catch (e) {
+            console.error('[DatasetDiscovery] Error parsing GitHub response:', e.message);
+            resolve([]);
+          }
+        });
+      }).on('error', (e) => {
+        console.error('[DatasetDiscovery] GitHub API error:', e.message);
+        resolve([]);
+      });
+    });
+  });
+
+  Promise.all(searchPromises).then(allResults => {
+    const flatResults = allResults.flat();
+    console.log(`[DatasetDiscovery] Discovered ${flatResults.length} datasets`);
+
+    // Insert into database (batch insert)
+    if (flatResults.length > 0) {
+      const insertStmt = db.prepare(`INSERT OR IGNORE INTO dataset_index 
+        (name, provider, description, file_type, dataset_url, repository_url, repository, owner, last_updated, topic_tags) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+
+      flatResults.forEach(dataset => {
+        insertStmt.run([
+          dataset.name,
+          dataset.provider,
+          dataset.description,
+          dataset.file_type,
+          dataset.dataset_url,
+          dataset.repository_url,
+          dataset.repository,
+          dataset.owner,
+          dataset.last_updated,
+          dataset.topic_tags
+        ]);
+      });
+      insertStmt.finalize();
+
+      res.json({
+        success: true,
+        discovered: flatResults.length,
+        message: `Discovered ${flatResults.length} datasets from GitHub`
+      });
+    } else {
+      res.json({
+        success: true,
+        discovered: 0,
+        message: 'No new datasets found'
+      });
+    }
+  }).catch(err => {
+    console.error('[DatasetDiscovery] Error:', err);
+    res.status(500).json({ error: err.message });
+  });
+});
+
+/**
+ * Run background dataset discovery (multiple topics)
+ * POST /api/dataset-discovery/discover
+ */
+app.post('/api/dataset-discovery/discover', (req, res) => {
+  const topics = req.body.topics || ['dataset', 'data', 'climate', 'sales', 'finance', 'health', 'population', 'education'];
+  const maxResultsPerTopic = req.body.maxResultsPerTopic || 50;
+
+  console.log(`[DatasetDiscovery] Starting background discovery for topics: ${topics.join(', ')}`);
+
+  let processedTopics = 0;
+  let totalDiscovered = 0;
+
+  const processTopic = (topic) => {
+    return new Promise((resolve) => {
+      const searchQuery = encodeURIComponent(`${topic} extension:csv`);
+      const githubApiUrl = `https://api.github.com/search/code?q=${searchQuery}&per_page=${Math.min(maxResultsPerTopic, 100)}`;
+
+      const options = {
+        headers: {
+          'User-Agent': 'DatasetDiscoveryEngine/1.0',
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      };
+
+      https.get(githubApiUrl, options, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(data);
+            const items = json.items || [];
+            const datasets = items.map(item => ({
+              name: item.name.replace(/\.[^/.]+$/, ''),
+              provider: 'github',
+              description: item.name,
+              file_type: 'csv',
+              dataset_url: item.html_url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/'),
+              repository_url: item.repository.html_url,
+              repository: item.repository.name,
+              owner: item.repository.owner.login,
+              last_updated: item.repository.updated_at,
+              topic_tags: JSON.stringify([topic])
+            }));
+
+            // Batch insert
+            if (datasets.length > 0) {
+              const insertStmt = db.prepare(`INSERT OR IGNORE INTO dataset_index 
+                (name, provider, description, file_type, dataset_url, repository_url, repository, owner, last_updated, topic_tags) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+
+              datasets.forEach(dataset => {
+                insertStmt.run([
+                  dataset.name,
+                  dataset.provider,
+                  dataset.description,
+                  dataset.file_type,
+                  dataset.dataset_url,
+                  dataset.repository_url,
+                  dataset.repository,
+                  dataset.owner,
+                  dataset.last_updated,
+                  dataset.topic_tags
+                ]);
+              });
+              insertStmt.finalize();
+            }
+
+            console.log(`[DatasetDiscovery] Topic '${topic}': found ${datasets.length} datasets`);
+            resolve(datasets.length);
+          } catch (e) {
+            console.error(`[DatasetDiscovery] Error processing topic '${topic}':`, e.message);
+            resolve(0);
+          }
+        });
+      }).on('error', (e) => {
+        console.error(`[DatasetDiscovery] Error for topic '${topic}':`, e.message);
+        resolve(0);
+      });
+    });
+  };
+
+  // Process topics sequentially to avoid rate limiting
+  const processSequentially = async () => {
+    for (const topic of topics) {
+      const count = await processTopic(topic);
+      totalDiscovered += count;
+      processedTopics++;
+      
+      // Wait a bit between requests to avoid rate limiting
+      await new Promise(r => setTimeout(r, 1000));
+    }
+
+    console.log(`[DatasetDiscovery] Background discovery complete. Total: ${totalDiscovered} datasets`);
+    res.json({
+      success: true,
+      topicsProcessed: processedTopics,
+      totalDiscovered,
+      message: `Discovered ${totalDiscovered} datasets from ${processedTopics} topics`
+    });
+  };
+
+  processSequentially();
+
+  // Return immediately while discovery runs in background
+  res.json({
+    success: true,
+    message: `Started background discovery for ${topics.length} topics`
+  });
+});
+
+/**
+ * Validate dataset URL
+ * POST /api/dataset-discovery/validate
+ */
+app.post('/api/dataset-discovery/validate', (req, res) => {
+  const { url } = req.body;
+
+  if (!url) {
+    return res.status(400).json({ error: 'URL is required' });
+  }
+
+  console.log(`[DatasetDiscovery] Validating URL: ${url}`);
+
+  const validateUrl = (urlString) => {
+    return new Promise((resolve) => {
+      const protocol = urlString.startsWith('https') ? https : http;
+      
+      const req = protocol.request(urlString, { method: 'HEAD', timeout: 10000 }, (response) => {
+        const contentLength = response.headers['content-length'];
+        const contentType = response.headers['content-type'] || '';
+        
+        // Check file size (max 200MB)
+        const maxSize = 200 * 1024 * 1024; // 200MB
+        const size = contentLength ? parseInt(contentLength) : 0;
+        
+        // Check if it's a supported type
+        const supportedTypes = ['csv', 'json', 'text/', 'application/json', 'application/octet-stream'];
+        const isSupported = supportedTypes.some(t => contentType.includes(t));
+        
+        resolve({
+          valid: response.statusCode === 200 && size <= maxSize && isSupported,
+          statusCode: response.statusCode,
+          size,
+          sizeDisplay: formatBytes(size),
+          contentType,
+          error: response.statusCode !== 200 ? `HTTP ${response.statusCode}` : 
+                 size > maxSize ? 'File too large (>200MB)' : 
+                 !isSupported ? 'Unsupported content type' : null
+        });
+      });
+      
+      req.on('error', (e) => {
+        resolve({ valid: false, error: e.message });
+      });
+      
+      req.on('timeout', () => {
+        req.destroy();
+        resolve({ valid: false, error: 'Request timeout' });
+      });
+      
+      req.end();
+    });
+  };
+
+  validateUrl(url).then(result => {
+    res.json(result);
+  }).catch(err => {
+    res.status(500).json({ valid: false, error: err.message });
+  });
+});
+
+/**
+ * Validate all unvalidated datasets
+ * POST /api/dataset-discovery/validate-all
+ */
+app.post('/api/dataset-discovery/validate-all', (req, res) => {
+  const { limit = 50 } = req.body;
+
+  db.all('SELECT id, dataset_url FROM dataset_index WHERE is_validated = 0 LIMIT ?', [limit], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    if (rows.length === 0) {
+      return res.json({ validated: 0, message: 'No datasets to validate' });
+    }
+
+    console.log(`[DatasetDiscovery] Validating ${rows.length} datasets...`);
+
+    let validated = 0;
+    let errors = 0;
+
+    const validateDataset = (row) => {
+      return new Promise((resolve) => {
+        const url = row.dataset_url;
+        const protocol = url.startsWith('https') ? https : http;
+
+        const req = protocol.request(url, { method: 'HEAD', timeout: 10000 }, (response) => {
+          const contentLength = response.headers['content-length'];
+          const size = contentLength ? parseInt(contentLength) : 0;
+          const maxSize = 200 * 1024 * 1024;
+
+          if (response.statusCode === 200 && size <= maxSize) {
+            db.run('UPDATE dataset_index SET is_validated = 1, size_bytes = ?, size_display = ? WHERE id = ?', 
+              [size, formatBytes(size), row.id]);
+            validated++;
+          } else {
+            const errorMsg = response.statusCode !== 200 ? `HTTP ${response.statusCode}` : 'File too large';
+            db.run('UPDATE dataset_index SET is_validated = 0, validation_error = ? WHERE id = ?', 
+              [errorMsg, row.id]);
+            errors++;
+          }
+          resolve();
+        });
+
+        req.on('error', (e) => {
+          db.run('UPDATE dataset_index SET is_validated = 0, validation_error = ? WHERE id = ?', 
+            [e.message, row.id]);
+          errors++;
+          resolve();
+        });
+
+        req.on('timeout', () => {
+          req.destroy();
+          db.run('UPDATE dataset_index SET is_validated = 0, validation_error = ? WHERE id = ?', 
+            ['Timeout', row.id]);
+          errors++;
+          resolve();
+        });
+
+        req.end();
+      });
+    };
+
+    // Validate sequentially
+    const validateSequentially = async () => {
+      for (const row of rows) {
+        await validateDataset(row);
+        // Small delay to avoid overwhelming the server
+        await new Promise(r => setTimeout(r, 100));
+      }
+
+      console.log(`[DatasetDiscovery] Validation complete. Valid: ${validated}, Errors: ${errors}`);
+      res.json({ validated, errors, message: `Validated ${validated} datasets, ${errors} errors` });
+    };
+
+    validateSequentially();
+  });
+
+  // Return immediately
+  res.json({ message: `Validating ${rows.length} datasets...` });
+});
+
+/**
+ * Format bytes to human readable
+ */
+function formatBytes(bytes) {
+  if (!bytes || bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 
 // ============================================================
 // START SERVER

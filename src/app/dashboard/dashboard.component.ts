@@ -1,5 +1,5 @@
-import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, HostListener, ElementRef, PLATFORM_ID, Inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
@@ -46,7 +46,8 @@ export class DashboardComponent implements OnInit {
   placeholders: string[] = [
     'Search files...',
     'Search topics...',
-    'Search websites...'
+    'Search websites...',
+    'Search datasets...'
   ];
 
   // Animated counters
@@ -77,8 +78,7 @@ export class DashboardComponent implements OnInit {
   processingOptions: FeatureOption[] = [
     { id: 3, title: 'API Connector', description: 'Connect to REST APIs & datasets', icon: '🔗', action: 'api-connector' },
     { id: 4, title: 'Website', description: 'Explore curated websites', icon: '🌐', action: 'website' },
-    { id: 5, title: 'Data Filter', description: 'Filter & transform data with ETL operations', icon: '🔍', action: 'data-filter' },
-    { id: 6, title: 'Data Processing', description: 'Clean, normalize & filter your data', icon: '⚙️', action: 'data-processing' }
+    { id: 6, title: 'Data Filter & Processing', description: 'Clean, normalize & filter your data', icon: '⚙️', action: 'data-processing' }
   ];
 
   analysisOptions: FeatureOption[] = [
@@ -89,34 +89,67 @@ export class DashboardComponent implements OnInit {
 
   reportOptions: FeatureOption[] = [
     { id: 10, title: 'Projects', description: 'Manage workspaces & save projects', icon: '📁', action: 'projects' },
+    { id: 11, title: 'Version History', description: 'View and compare report versions', icon: '📜', action: 'version-history' },
+    { id: 12, title: 'AI Chat Helper', description: 'Upload data and interact with AI assistant to generate insights, summaries, and visualizations', icon: '🤖', action: 'ai-chat' },
+    { id: 13, title: 'Data Visualization', description: 'Upload your dataset and generate multiple interactive visualizations instantly', icon: '📊', action: 'visualization-upload' }
+  ];
+
+  // Combined quick actions for display - exactly in order
+  quickActionCards: FeatureOption[] = [
+    // Row 1
+    { id: 1, title: 'Add File', description: 'Upload and manage your files', icon: '📁', action: 'add-file' },
+    { id: 2, title: 'Select Topic', description: 'Choose topics of interest', icon: '📌', action: 'select-topic' },
+    { id: 4, title: 'Website', description: 'Explore curated websites', icon: '🌐', action: 'website' },
+    // Row 2
+    { id: 13, title: 'Data Visualization', description: 'Upload your dataset and generate multiple interactive visualizations instantly', icon: '📊', action: 'visualization-upload' },
+    { id: 12, title: 'AI Chat Helper', description: 'Upload data and interact with AI assistant to generate insights, summaries, and visualizations', icon: '🤖', action: 'ai-chat' },
+    { id: 3, title: 'API Connector', description: 'Connect to REST APIs & datasets', icon: '🔗', action: 'api-connector' },
+    // Row 3
+    { id: 6, title: 'Data Filter & Processing', description: 'Clean, normalize & filter your data', icon: '⚙️', action: 'data-processing' },
+    { id: 7, title: 'Pipeline Builder', description: 'Visual drag-drop data pipeline', icon: '🔗', action: 'pipeline-builder' },
+    { id: 8, title: 'Dataset Compressor', description: 'Compress & clean datasets', icon: '🗜️', action: 'compressor' },
+    // Row 4
+    { id: 9, title: 'Data Converter', description: 'Convert data between formats', icon: '🔄', action: 'converter' },
+    { id: 10, title: 'Projects', description: 'Manage workspaces & save projects', icon: '📁', action: 'projects' },
     { id: 11, title: 'Version History', description: 'View and compare report versions', icon: '📜', action: 'version-history' }
   ];
+
+  // Combined quick actions for display
+  get allQuickActions(): FeatureOption[] {
+    return this.quickActionCards;
+  }
 
   constructor(
     private authService: AuthService, 
     private router: Router,
     private dataAnalysisService: DataAnalysisService,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
-    const fileData = this.dataAnalysisService.getFileData();
-    this.hasData = !!fileData && fileData.parsedData.length > 0;
-    
-    // Load recent files
-    this.recentUploadedFiles = this.dataAnalysisService.getRecentUploadedFiles();
-    this.recentDownloadedFiles = this.dataAnalysisService.getRecentDownloadedFiles();
+    // Only run browser-specific code on client side
+    if (isPlatformBrowser(this.platformId)) {
+      const fileData = this.dataAnalysisService.getFileData();
+      this.hasData = !!fileData && fileData.parsedData.length > 0;
+      
+      // Load recent files
+      this.recentUploadedFiles = this.dataAnalysisService.getRecentUploadedFiles();
+      this.recentDownloadedFiles = this.dataAnalysisService.getRecentDownloadedFiles();
 
-    // Start placeholder rotation
-    this.startPlaceholderRotation();
+      // Start placeholder rotation
+      this.startPlaceholderRotation();
 
-    // Start counter animation
-    this.animateCounters();
+      // Start counter animation
+      this.animateCounters();
+    }
   }
 
-  @HostListener('window:scroll', ['$event'])
+  @HostListener('window:scroll')
   onWindowScroll() {
-    this.isScrolled = window.scrollY > 50;
+    if (isPlatformBrowser(this.platformId)) {
+      this.isScrolled = window.scrollY > 50;
+    }
   }
 
   startPlaceholderRotation() {
@@ -153,8 +186,10 @@ export class DashboardComponent implements OnInit {
 
   onSearch() {
     if (this.searchQuery.trim()) {
-      this.showToast(`Searching for: ${this.searchQuery}`, 'info', '🔍');
-      console.log('Searching for:', this.searchQuery);
+      // Navigate to dataset search results page
+      this.router.navigate(['/dataset-search-results'], {
+        queryParams: { q: this.searchQuery.trim() }
+      });
     }
   }
 
@@ -265,6 +300,12 @@ export class DashboardComponent implements OnInit {
         break;
       case 'converter':
         this.router.navigate(['/converter']);
+        break;
+      case 'ai-chat':
+        this.router.navigate(['/ai-chat']);
+        break;
+      case 'visualization-upload':
+        this.router.navigate(['/visualization-upload']);
         break;
     }
   }

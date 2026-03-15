@@ -15,6 +15,12 @@
   width: 100%;
   max-width: 500px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  transition: max-width 0.3s ease;
+}
+
+.preview-section + .upload-card,
+.preview-section ~ .upload-card {
+  max-width: 800px;
 }
 
 .upload-header {
@@ -190,4 +196,107 @@
 .upload-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Preview Section Styles */
+.preview-section {
+  margin-bottom: 1.5rem;
+}
+
+.preview-header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.preview-header h3 {
+  color: #28a745;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.preview-header p {
+  color: #666;
+  margin: 0;
+}
+
+.preview-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.preview-info {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.info-row .label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.info-row .value {
+  color: #212529;
+}
+
+.sample-data h4 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.table-container th,
+.table-container td {
+  padding: 0.5rem;
+  text-align: left;
+  border: 1px solid #dee2e6;
+  white-space: nowrap;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table-container th {
+  background: #e9ecef;
+  font-weight: 600;
+}
+
+.table-container td {
+  background: white;
+}
+
+.redirect-message {
+  text-align: center;
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.redirect-message p {
+  margin: 0;
+  color: #667eea;
+  font-weight: 500;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }

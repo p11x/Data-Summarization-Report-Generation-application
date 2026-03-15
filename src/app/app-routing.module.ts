@@ -11,8 +11,8 @@ export const routes: Routes = [
   },
   { 
     path: 'home', 
-    loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent), 
-    canActivate: [AuthGuard] 
+    loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent)
+    // Publicly accessible - no AuthGuard
   },
   { path: 'dashboard', redirectTo: '/home', pathMatch: 'full' },
   { 
@@ -22,8 +22,8 @@ export const routes: Routes = [
   },
   { 
     path: 'report', 
-    loadComponent: () => import('./report/report.component').then(m => m.ReportComponent), 
-    canActivate: [AuthGuard] 
+    loadComponent: () => import('./report/report.component').then(m => m.ReportComponent)
+    // Publicly accessible for dataset analysis from search
   },
   { 
     path: 'download', 
@@ -144,6 +144,41 @@ export const routes: Routes = [
     path: 'ai-insights', 
     loadComponent: () => import('./ai-insights/ai-insights.component').then(m => m.AiInsightsComponent), 
     canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'ai-chat', 
+    loadComponent: () => import('./ai-assistant/pages/ai-chat-page/ai-chat-page.component').then(m => m.AiChatPageComponent), 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'ai-report', 
+    loadComponent: () => import('./ai-assistant/pages/ai-report-page/ai-report-page.component').then(m => m.AiReportPageComponent), 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'visualization-upload', 
+    loadComponent: () => import('./visualization/pages/visualization-upload/visualization-upload.component').then(m => m.VisualizationUploadComponent), 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'visualization-dashboard', 
+    loadComponent: () => import('./visualization/pages/visualization-dashboard/visualization-dashboard.component').then(m => m.VisualizationDashboardComponent), 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'visualization-download', 
+    loadComponent: () => import('./visualization/pages/visualization-download/visualization-download.component').then(m => m.VisualizationDownloadComponent), 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'dataset-search-results', 
+    loadComponent: () => import('./dataset-search/pages/dataset-search-results/dataset-search-results.component').then(m => m.DatasetSearchResultsComponent)
+    // Publicly accessible - no AuthGuard for dataset search
+  },
+  { 
+    path: 'search-report', 
+    loadComponent: () => import('./dataset-search/pages/search-report/search-report.component').then(m => m.SearchReportComponent)
+    // Publicly accessible - no AuthGuard for search report
   },
   { path: '**', redirectTo: '/auth' }
 ];

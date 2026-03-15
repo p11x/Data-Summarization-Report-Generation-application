@@ -1,0 +1,226 @@
+<div class="data-processing-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()">← Back</button>
+      <div class="header-title">
+        <h1>⚙️ Data Processing</h1>
+        <p class="subtitle">Clean, normalize & filter your data with ETL operations</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- No Data State -->
+  <div *ngIf="!hasData" class="no-data-container">
+    <div class="no-data-card">
+      <div class="no-data-icon">📊</div>
+      <h2>No Data Available</h2>
+      <p>Please upload a CSV file first to process your data.</p>
+      <button class="upload-btn" (click)="goToUpload()">📁 Upload File</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="hasData" class="processing-content">
+    
+    <!-- Processing Options Panel -->
+    <div class="options-panel">
+      <h3>Select Operation</h3>
+      
+      <div class="operation-tabs">
+        <button 
+          class="tab-btn" 
+          [class.active]="selectedOperation === 'filter'"
+          (click)="selectOperation('filter')">
+          🔍 Filter Rows
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="selectedOperation === 'remove-nulls'"
+          (click)="selectOperation('remove-nulls')">
+          🗑️ Remove Nulls
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="selectedOperation === 'normalize'"
+          (click)="selectOperation('normalize')">
+          📐 Normalize
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="selectedOperation === 'rename'"
+          (click)="selectOperation('rename')">
+          ✏️ Rename Fields
+        </button>
+      </div>
+
+      <!-- Filter Options -->
+      <div *ngIf="selectedOperation === 'filter'" class="option-content">
+        <h4>Filter Conditions</h4>
+        <p class="hint">Add conditions to filter rows. Example: "sales > 0"</p>
+        
+        <div class="filter-form">
+          <select [(ngModel)]="selectedFilterColumn">
+            <option value="">Select Column</option>
+            <option *ngFor="let col of filterColumns" [value]="col">{{ col }}</option>
+          </select>
+          
+          <select [(ngModel)]="filterOperator">
+            <option *ngFor="let op of operators" [value]="op.value">{{ op.label }}</option>
+          </select>
+          
+          <input 
+            type="text" 
+            [(ngModel)]="filterValue" 
+            placeholder="Value"
+            [disabled]="filterOperator === 'isEmpty' || filterOperator === 'isNotEmpty'">
+          
+          <button class="add-btn" (click)="addFilterCondition()">+ Add</button>
+        </div>
+
+        <div class="filter-conditions" *ngIf="filterConditions.length > 0">
+          <div class="condition-item" *ngFor="let cond of filterConditions; let i = index">
+            <span class="condition">{{ cond.column }} {{ cond.operator }} {{ cond.value || '(empty)' }}</span>
+            <button class="remove-btn" (click)="removeFilterCondition(i)">×</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Remove Nulls Options -->
+      <div *ngIf="selectedOperation === 'remove-nulls'" class="option-content">
+        <h4>Select Columns to Check</h4>
+        <p class="hint">Rows with null/empty values in selected columns will be removed.</p>
+        
+        <div class="checkbox-list">
+          <label class="checkbox-item" *ngFor="let col of removeNullColumns">
+            <input 
+              type="checkbox" 
+              [checked]="isNullColumnSelected(col)"
+              (change)="toggleNullColumn(col)">
+            <span>{{ col }}</span>
+          </label>
+        </div>
+        
+        <button 
+          class="select-all-btn" 
+          (click)="selectAllNullColumns()">
+          Select All
+        </button>
+      </div>
+
+      <!-- Normalize Options -->
+      <div *ngIf="selectedOperation === 'normalize'" class="option-content">
+        <h4>Select Columns to Normalize</h4>
+        <p class="hint">Values will be scaled to 0-1 range using min-max normalization.</p>
+        
+        <div class="checkbox-list">
+          <label class="checkbox-item" *ngFor="let col of normalizeColumns">
+            <input 
+              type="checkbox" 
+              [checked]="isNormalizeColumnSelected(col)"
+              (change)="toggleNormalizeColumn(col)">
+            <span>{{ col }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Rename Options -->
+      <div *ngIf="selectedOperation === 'rename'" class="option-content">
+        <h4>Field Name Mappings</h4>
+        <p class="hint">Rename columns to more descriptive names.</p>
+        
+        <div class="rename-form">
+          <select [(ngModel)]="newRenameMapping.oldName">
+            <option value="">Select Column</option>
+            <option *ngFor="let col of columns" [value]="col">{{ col }}</option>
+          </select>
+          
+          <span class="arrow">→</span>
+          
+          <input 
+            type="text" 
+            [(ngModel)]="newRenameMapping.newName" 
+            placeholder="New name">
+          
+          <button class="add-btn" (click)="addRenameMapping()">+ Add</button>
+        </div>
+
+        <div class="rename-list" *ngIf="renameMappings.length > 0">
+          <div class="rename-item" *ngFor="let mapping of renameMappings; let i = index">
+            <span class="old-name">{{ mapping.oldName }}</span>
+            <span class="arrow">→</span>
+            <span class="new-name">{{ mapping.newName }}</span>
+            <button class="remove-btn" (click)="removeRenameMapping(i)">×</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Process Button -->
+      <div class="action-buttons">
+        <button class="process-btn" (click)="processData()" [disabled]="isProcessing">
+          {{ isProcessing ? 'Processing...' : '▶ Process Data' }}
+        </button>
+        <button class="reset-btn" (click)="resetData()">
+          ↺ Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="results-panel">
+      <!-- Stats Header -->
+      <div class="stats-header">
+        <div class="stat-card">
+          <span class="stat-value">{{ originalRowCount }}</span>
+          <span class="stat-label">Original Rows</span>
+        </div>
+        <div class="stat-card" *ngIf="showResults">
+          <span class="stat-value">{{ processedRowCount }}</span>
+          <span class="stat-label">Processed Rows</span>
+        </div>
+        <div class="stat-card warning" *ngIf="showResults && removedRowCount > 0">
+          <span class="stat-value">{{ removedRowCount }}</span>
+          <span class="stat-label">Removed</span>
+        </div>
+      </div>
+
+      <!-- Results Table -->
+      <div class="results-table-container" *ngIf="showResults">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th *ngFor="let col of columns">{{ col }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of paginatedData">
+              <td *ngFor="let col of columns">{{ row[col] }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <button (click)="prevPage()" [disabled]="currentPage === 1">← Previous</button>
+          <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+          <button (click)="nextPage()" [disabled]="currentPage >= totalPages">Next →</button>
+        </div>
+
+        <!-- Download Button -->
+        <div class="download-section">
+          <button class="download-btn" (click)="downloadCSV()">
+            📥 Download Processed Data as CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Initial State -->
+      <div class="initial-state" *ngIf="!showResults">
+        <div class="placeholder">
+          <span class="icon">📊</span>
+          <p>Select an operation and click "Process Data" to see results</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

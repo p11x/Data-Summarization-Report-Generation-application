@@ -107,6 +107,12 @@ body.dark-mode {
   font-size: 2rem;
 }
 
+.logo-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
 .logo-text {
   font-size: 1.5rem;
   font-weight: 700;
@@ -543,8 +549,10 @@ body.dark-mode {
 
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* Glassmorphism Cards */
@@ -1087,7 +1095,7 @@ body.dark-mode {
   }
 
   .features-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .footer-content {

@@ -6,7 +6,7 @@
   <!-- Navigation Header -->
   <nav class="navbar" [class.scrolled]="isScrolled">
     <div class="navbar-brand">
-      <span class="logo-icon">📈</span>
+      <img src="assets/complexity.png" alt="Logo" class="logo-img">
       <span class="logo-text">DataVision</span>
     </div>
     <div class="navbar-menu" [class.active]="isMobileMenuOpen">
@@ -79,8 +79,8 @@
   <section class="hero-section">
     <div class="hero-content">
       <h1 class="hero-title">
-        <span class="gradient-text">Smart Data</span> Summarization<br>
-        & Analytics Platform
+        <span class="gradient-text">Data Summarization</span><br>
+        & Report Generation
       </h1>
       <p class="hero-subtitle">
         Transform your data into actionable insights with AI-powered analytics,
@@ -123,129 +123,66 @@
     </div>
   </section>
 
-  <!-- Interactive Dashboard Preview -->
-  <section class="dashboard-preview-section">
-    <div class="preview-card">
-      <div class="preview-header">
-        <h3>📊 Quick Overview</h3>
-        <span class="live-badge">● Live</span>
-      </div>
-      <div class="preview-stats">
-        <div class="stat-item">
-          <div class="stat-icon">📁</div>
-          <div class="stat-info">
-            <span class="stat-value">{{ animatedFiles }}</span>
-            <span class="stat-label">Files</span>
-          </div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-icon">📄</div>
-          <div class="stat-info">
-            <span class="stat-value">{{ animatedReports }}</span>
-            <span class="stat-label">Reports</span>
-          </div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-icon">🔗</div>
-          <div class="stat-info">
-            <span class="stat-value">{{ animatedPipelines }}</span>
-            <span class="stat-label">Pipelines</span>
-          </div>
-        </div>
-      </div>
-      <div class="mini-chart">
-        <div class="chart-bar" *ngFor="let bar of chartData; let i = index" 
-             [style.height.%]="bar.value"
-             [style.animation-delay.ms]="i * 100">
-        </div>
-      </div>
-    </div>
-  </section>
+   <!-- Interactive Dashboard Preview -->
+   <section class="dashboard-preview-section">
+     <div class="preview-card">
+       <div class="preview-header">
+         <h3>📊 Quick Overview</h3>
+         <span class="live-badge">● Live</span>
+       </div>
+       <div class="preview-stats">
+         <div class="stat-item">
+           <div class="stat-icon">📁</div>
+           <div class="stat-info">
+             <span class="stat-value">{{ animatedFiles }}</span>
+             <span class="stat-label">Files</span>
+           </div>
+         </div>
+         <div class="stat-item">
+           <div class="stat-icon">📄</div>
+           <div class="stat-info">
+             <span class="stat-value">{{ animatedReports }}</span>
+             <span class="stat-label">Reports</span>
+           </div>
+         </div>
+         <div class="stat-item">
+           <div class="stat-icon">🔗</div>
+           <div class="stat-info">
+             <span class="stat-value">{{ animatedPipelines }}</span>
+             <span class="stat-label">Pipelines</span>
+           </div>
+         </div>
+       </div>
+       <div class="mini-chart">
+         <div class="chart-bar"
+              *ngFor="let bar of chartData; let i = index"
+              [style.height.%]="bar.value"
+              [style.animation-delay.ms]="i * 100">
+         </div>
+       </div>
+     </div>
+   </section>
 
-  <!-- Quick Actions Section -->
-  <section class="features-section">
-    <h2 class="section-title">Quick Actions</h2>
-    
-    <!-- Data Input Category -->
-    <div class="category-section">
-      <h3 class="category-title">📥 Data Input</h3>
-      <div class="features-grid">
-        <div 
-          *ngFor="let option of dataInputOptions; let i = index" 
-          class="feature-card glass"
-          [style.animation-delay.ms]="i * 100"
-          (click)="onFeatureAction(option.action)"
-          (mouseenter)="onCardHover($event)"
-          (mouseleave)="onCardLeave($event)"
-        >
-          <div class="card-icon">{{ option.icon }}</div>
-          <h4>{{ option.title }}</h4>
-          <p>{{ option.description }}</p>
-          <div class="card-glow"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Processing Category -->
-    <div class="category-section">
-      <h3 class="category-title">⚙️ Processing</h3>
-      <div class="features-grid">
-        <div 
-          *ngFor="let option of processingOptions; let i = index" 
-          class="feature-card glass"
-          [style.animation-delay.ms]="i * 100"
-          (click)="onFeatureAction(option.action)"
-          (mouseenter)="onCardHover($event)"
-          (mouseleave)="onCardLeave($event)"
-        >
-          <div class="card-icon">{{ option.icon }}</div>
-          <h4>{{ option.title }}</h4>
-          <p>{{ option.description }}</p>
-          <div class="card-glow"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Analysis Category -->
-    <div class="category-section">
-      <h3 class="category-title">🔬 Analysis</h3>
-      <div class="features-grid">
-        <div 
-          *ngFor="let option of analysisOptions; let i = index" 
-          class="feature-card glass"
-          [style.animation-delay.ms]="i * 100"
-          (click)="onFeatureAction(option.action)"
-          (mouseenter)="onCardHover($event)"
-          (mouseleave)="onCardLeave($event)"
-        >
-          <div class="card-icon">{{ option.icon }}</div>
-          <h4>{{ option.title }}</h4>
-          <p>{{ option.description }}</p>
-          <div class="card-glow"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Reports Category -->
-    <div class="category-section">
-      <h3 class="category-title">📋 Reports</h3>
-      <div class="features-grid">
-        <div 
-          *ngFor="let option of reportOptions; let i = index" 
-          class="feature-card glass"
-          [style.animation-delay.ms]="i * 100"
-          (click)="onFeatureAction(option.action)"
-          (mouseenter)="onCardHover($event)"
-          (mouseleave)="onCardLeave($event)"
-        >
-          <div class="card-icon">{{ option.icon }}</div>
-          <h4>{{ option.title }}</h4>
-          <p>{{ option.description }}</p>
-          <div class="card-glow"></div>
-        </div>
-      </div>
-    </div>
-  </section>
+   <!-- Quick Actions Section -->
+   <section class="features-section">
+     <h2 class="section-title">Quick Actions</h2>
+     
+     <div class="features-grid">
+       <div 
+         *ngFor="let option of allQuickActions; let i = index" 
+         class="feature-card glass"
+         [style.animation-delay.ms]="i * 100"
+         (click)="onFeatureAction(option.action)"
+         (mouseenter)="onCardHover($event)"
+         (mouseleave)="onCardLeave($event)"
+       >
+         <div class="card-icon">{{ option.icon }}</div>
+         <h4>{{ option.title }}</h4>
+         <p>{{ option.description }}</p>
+         <div class="card-glow"></div>
+       </div>
+     </div>
+   </section>
 
   <!-- Recent Files Section -->
   <section class="recent-section">

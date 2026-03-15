@@ -5,20 +5,67 @@
       <h2>Upload File</h2>
     </div>
 
-    <div *ngIf="uploadSuccess" class="success-message">
+    <div *ngIf="uploadSuccess && !showPreview" class="success-message">
       ✓ File uploaded successfully! Redirecting to analysis...
+    </div>
+
+    <!-- Dataset Preview Section -->
+    <div *ngIf="showPreview && datasetPreview" class="preview-section">
+      <div class="preview-header">
+        <h3>✓ Analysis Complete!</h3>
+        <p>Dataset ready for viewing</p>
+      </div>
+      
+      <div class="preview-card">
+        <div class="preview-info">
+          <div class="info-row">
+            <span class="label">File Name:</span>
+            <span class="value">{{ datasetPreview.name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Total Rows:</span>
+            <span class="value">{{ datasetPreview.rows | number }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Columns:</span>
+            <span class="value">{{ datasetPreview.columns.length }}</span>
+          </div>
+        </div>
+        
+        <div class="sample-data">
+          <h4>Preview (First 5 rows)</h4>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th *ngFor="let col of datasetPreview.columns">{{ col }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of datasetPreview.sampleData">
+                  <td *ngFor="let col of datasetPreview.columns">{{ row[col] }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div class="redirect-message">
+          <p>Redirecting to full analysis report...</p>
+        </div>
+      </div>
     </div>
 
     <div *ngIf="uploadError" class="error-message">
       {{ uploadError }}
     </div>
 
-    <div *ngIf="uploading && processingMessage" class="processing-message">
+    <div *ngIf="uploading && processingMessage && !uploadSuccess" class="processing-message">
       <div class="spinner"></div>
       <p>{{ processingMessage }}</p>
     </div>
 
-    <div class="upload-area" [class.disabled]="uploading">
+    <div class="upload-area" [class.disabled]="uploading" *ngIf="!uploadSuccess || showPreview === false">
       <div class="upload-icon">📁</div>
       <p>Drag and drop your CSV file here, or</p>
       <label class="file-label">
@@ -34,7 +81,7 @@
       <p class="file-hint">Supported formats: CSV, TXT</p>
     </div>
 
-    <div *ngIf="selectedFile" class="selected-file">
+    <div *ngIf="selectedFile && !uploadSuccess" class="selected-file">
       <span class="file-icon">📄</span>
       <div class="file-info">
         <p class="file-name">{{ selectedFile.name }}</p>
@@ -46,6 +93,7 @@
       class="upload-btn" 
       (click)="onUpload()" 
       [disabled]="!selectedFile || uploading"
+      *ngIf="!uploadSuccess"
     >
       {{ uploading ? 'Processing...' : 'Upload & Analyze' }}
     </button>

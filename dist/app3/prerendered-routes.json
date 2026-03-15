@@ -1,7 +1,9 @@
 {
   "routes": {
     "/": {},
+    "/ai-chat": {},
     "/ai-insights": {},
+    "/ai-report": {},
     "/anomaly-detection": {},
     "/api-connector": {},
     "/auth": {},
@@ -11,6 +13,7 @@
     "/data-filter": {},
     "/data-processing": {},
     "/data-sources": {},
+    "/dataset-search-results": {},
     "/download": {},
     "/filtered-data": {},
     "/forecasting": {},
@@ -22,11 +25,15 @@
     "/projects": {},
     "/recent-reports": {},
     "/report": {},
+    "/search-report": {},
     "/semantic-search": {},
     "/settings": {},
     "/topics": {},
     "/upload": {},
     "/versions": {},
+    "/visualization-dashboard": {},
+    "/visualization-download": {},
+    "/visualization-upload": {},
     "/website": {},
     "/what-if": {}
   }
